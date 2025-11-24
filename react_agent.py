@@ -393,6 +393,20 @@ class ReActAgent:
                     for obj_type, objs in vr['missing_objects'].items():
                         if objs:
                             history_parts.append(f"  - {obj_type}: {objs}")
+                            # Add helpful suggestions for fixing
+                            if obj_type == "points":
+                                history_parts.append(f"    💡 Fix: Add missing points - e.g., `point :  -> {objs[0]}`")
+                            elif obj_type == "segments":
+                                for seg in objs[:2]:  # Show first 2
+                                    history_parts.append(f"    💡 Fix: Add segment - `segment : {seg[0]} {seg[1]} -> seg_{seg[0]}{seg[1]}`")
+                            elif obj_type == "lines":
+                                for line in objs[:2]:  # Show first 2
+                                    history_parts.append(f"    💡 Fix: Add line - `line : {line[0]} {line[1]} -> line_{line[0]}{line[1]}`")
+                            elif obj_type == "polygons":
+                                for poly in objs[:1]:  # Show first 1
+                                    pts = ' '.join(poly)
+                                    labels = f"poly {' '.join(['side_' + str(i) for i in range(len(poly))])}"
+                                    history_parts.append(f"    💡 Fix: Add polygon - `polygon : {pts} -> {labels}`")
                 
                 if vr.get('failed_conditions'):
                     history_parts.append(f"\n**Failed Conditions:** {len(vr['failed_conditions'])} conditions not met")
@@ -405,7 +419,7 @@ class ReActAgent:
                         if validation_msg:
                             history_parts.append(f"    Result: {validation_msg}")
                         
-                        # Show specific details based on condition type
+                        # Show specific details and helpful fixes based on condition type
                         if cond_type == 'angle_value':
                             points = fc.get('points', [])
                             expected_value = fc.get('value', 'N/A')
@@ -413,24 +427,42 @@ class ReActAgent:
                             history_parts.append(f"    Expected angle: {expected_value}°")
                             if not validation_msg:
                                 history_parts.append(f"    Issue: The angle does not match the required value")
+                            if points and len(points) > 0 and len(points[0]) == 3:
+                                p1, vertex, p3 = points[0]
+                                history_parts.append(f"    💡 Fix: Use rotation to create angle - `rotate : {p1} {expected_value}° {vertex} -> {p3}`")
                         
                         elif cond_type == 'parallel':
                             objects = fc.get('objects', [])
                             history_parts.append(f"    Objects: {objects}")
                             if not validation_msg:
                                 history_parts.append(f"    Issue: These lines should be parallel but are not")
+                            if len(objects) == 2:
+                                line1, line2 = objects
+                                history_parts.append(f"    💡 Fix: Construct {line2[0]}{line2[1]} parallel to {line1[0]}{line1[1]} using same direction vector")
                         
                         elif cond_type == 'perpendicular':
                             objects = fc.get('objects', [])
                             history_parts.append(f"    Objects: {objects}")
                             if not validation_msg:
                                 history_parts.append(f"    Issue: These lines should be perpendicular but are not")
+                            if len(objects) == 2:
+                                line1, line2 = objects
+                                history_parts.append(f"    💡 Fix: Use `orthogonal_line : {line2[0]} line_{line1[0]}{line1[1]} -> perp_line`")
+                        
+                        elif cond_type == 'point_on_segment':
+                            point = fc.get('point', 'P')
+                            segment = fc.get('segment', [])
+                            history_parts.append(f"    Point: {point}, Segment: {segment}")
+                            if not validation_msg:
+                                history_parts.append(f"    Issue: Point {point} should be on segment {segment[0]}{segment[1]}")
+                            history_parts.append(f"    💡 Fix: Place {point} between {segment[0]} and {segment[1]} (use coordinates or intersection)")
                         
                         elif cond_type == 'segment_equality':
                             segments = fc.get('segments', [])
                             history_parts.append(f"    Segments: {segments}")
                             if not validation_msg:
                                 history_parts.append(f"    Issue: These segments should have equal length but do not")
+                            history_parts.append(f"    💡 Fix: Use same distance for both segments or construct them symmetrically")
                         
                         elif cond_type == 'angle_bisector':
                             line = fc.get('line', [])
@@ -439,17 +471,36 @@ class ReActAgent:
                             history_parts.append(f"    Angle: {angle_points}")
                             if not validation_msg:
                                 history_parts.append(f"    Issue: The line should bisect the angle but does not")
+                            if len(angle_points) == 3:
+                                history_parts.append(f"    💡 Fix: Use `angular_bisector : {angle_points[0]} {angle_points[1]} {angle_points[2]} -> bisector`")
                         
                         elif cond_type == 'collinear':
                             points = fc.get('points', [])
                             history_parts.append(f"    Points: {points}")
                             if not validation_msg:
                                 history_parts.append(f"    Issue: These points should be collinear but are not")
+                            history_parts.append(f"    💡 Fix: Place all points on the same line")
+                        
+                        elif cond_type == 'not_collinear':
+                            points = fc.get('points', [])
+                            history_parts.append(f"    Points: {points}")
+                            if not validation_msg:
+                                history_parts.append(f"    Issue: These points should NOT be collinear (degenerate triangle)")
+                            history_parts.append(f"    💡 Fix: Ensure points form a valid triangle, not a line")
+                        
+                        elif cond_type == 'midpoint_of':
+                            point = fc.get('point', 'M')
+                            segment = fc.get('segment', [])
+                            history_parts.append(f"    Point: {point}, Segment: {segment}")
+                            if not validation_msg:
+                                history_parts.append(f"    Issue: Point {point} should be midpoint of {segment[0]}{segment[1]}")
+                            history_parts.append(f"    💡 Fix: Use `midpoint : {segment[0]} {segment[1]} -> {point}`")
                         
                         else:
                             # Generic condition display
                             if not validation_msg:
                                 history_parts.append(f"    Details: {fc}")
+                            history_parts.append(f"    💡 Review the condition and adjust your construction accordingly")
             
             history_parts.append("\n" + "="*70 + "\n")
         

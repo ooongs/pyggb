@@ -146,6 +146,97 @@ prove : expr0 -> result          # Optional prove statement
 - If problem says "AB∥CD", construct parallel lines using geometric construction
 - If problem says "AB⊥CD", use `orthogonal_line` command to construct perpendicular
 
+## Validation-Friendly Patterns
+
+### Pattern 1: Explicitly Create Mentioned Objects
+
+If problem mentions specific geometric objects, create them explicitly:
+
+```
+# Problem mentions "segment AB" and "segment BC"
+point :  -> A
+point :  -> B
+point :  -> C
+segment : A B -> seg_AB    # Explicitly create
+segment : B C -> seg_BC    # Explicitly create
+```
+
+### Pattern 2: Points on Segments
+
+If problem says "D is on AB":
+
+```
+# Method 1: Fixed coordinates (if A and B are fixed)
+point : 0 0 -> A
+point : 200 0 -> B
+point : 80 0 -> D          # D between A and B on x-axis
+
+# Method 2: Using intersection with another line
+point :  -> A
+point :  -> B
+line : A B -> line_AB
+# ... construct another line that intersects AB
+intersect : line_AB other_line -> D
+```
+
+### Pattern 3: Parallel Lines
+
+If problem says "DE∥BC":
+
+```
+# Method 1: Use same direction vector
+point :  -> B
+point :  -> C
+line : B C -> line_BC
+
+# Calculate direction and create parallel line through D
+# (complex - see method 2)
+
+# Method 2: Use rotation
+point :  -> D
+point :  -> E
+line : D E -> line_DE
+# Note: Constructing truly parallel lines requires careful planning!
+# Often easier to use intersection of constructed parallel
+```
+
+### Pattern 4: Creating Triangles
+
+Always use polygon command for triangles:
+
+```
+point :  -> A
+point :  -> B
+point :  -> C
+polygon : A B C -> triangle side_c side_a side_b
+```
+
+This creates:
+- `triangle`: the polygon object
+- `side_c`, `side_a`, `side_b`: the three sides (in reverse order!)
+
+### Pattern 5: Angles with Specific Values
+
+```
+# Create angle of 60° using rotation
+point : 0 0 -> A
+point : 100 0 -> B
+rotate : B 60° A -> C
+# Now angle CAB = 60°
+```
+
+### Validation Checklist:
+
+Before finalizing your DSL, check:
+- [ ] All points mentioned in problem are created
+- [ ] All segments mentioned in problem are created (or points exist)
+- [ ] All lines mentioned in problem are created (or points exist)
+- [ ] All polygons mentioned in problem are created explicitly
+- [ ] All circles mentioned in problem are created explicitly
+- [ ] Conditions (parallel, perpendicular, angles) are satisfied geometrically
+- [ ] Points "on segments/lines" are positioned correctly
+- [ ] DSL ends with prove statement (equality : A A -> expr0, prove : expr0 -> result)
+
 ## Common Patterns
 
 ### Creating Parallel Lines:

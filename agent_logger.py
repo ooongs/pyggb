@@ -195,9 +195,12 @@ class AgentLogger:
                                     points = fc.get('points', [])
                                     f.write(f"     Points: {points}\n")
                         
-                        # Show success message if all passed
-                        if not has_missing and not failed_conditions:
+                        # Show success message if all passed (and no error occurred)
+                        if not has_missing and not failed_conditions and validation_result.get('total_score', 0) > 0:
                             f.write(f"\n✅ All objects and conditions satisfied!\n")
+                        elif validation_result.get('total_score', 0) == 0 and not has_missing and not failed_conditions:
+                            f.write(f"\n⚠️  Low scores but no detailed error information available.\n")
+                            f.write(f"    This may indicate a validation error occurred.\n")
             else:
                 f.write(f"{dsl_code}\n")
             
@@ -290,9 +293,12 @@ class AgentLogger:
                                 # Generic display
                                 f.write(f"     Details: {fc}\n")
                     
-                    # Show success message if all passed
-                    if not has_missing and not failed_conditions:
+                    # Show success message if all passed (and no error occurred)
+                    if not has_missing and not failed_conditions and validation_result.get('total_score', 0) > 0:
                         f.write(f"\n✅ All objects and conditions satisfied!\n")
+                    elif validation_result.get('total_score', 0) == 0 and not has_missing and not failed_conditions:
+                        f.write(f"\n⚠️  Low scores but no detailed error information available.\n")
+                        f.write(f"    This may indicate a validation error occurred.\n")
             
             f.write(f"\n{'='*80}\n")
     

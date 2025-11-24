@@ -64,6 +64,10 @@ class ProblemParser:
                 "required_objects": parsed_data.get("required_objects", {}),
                 "verification_conditions": parsed_data.get("verification_conditions", [])
             }
+            
+            # Validate and auto-correct the parsed data
+            result = self._validate_and_correct_parsed_data(result)
+            
             return result
         except Exception as e:
             print(f"LLM parsing failed: {e}, falling back to rule-based parsing")
@@ -106,6 +110,16 @@ class ProblemParser:
         if '平分' in problem_text:
             bisector_conditions = self._extract_bisector_conditions(problem_text, points)
             conditions.extend(bisector_conditions)
+        
+        # Check for point on segment/line (在...上)
+        if '在' in problem_text and '上' in problem_text:
+            point_on_conditions = self._extract_point_on_conditions(problem_text, points)
+            conditions.extend(point_on_conditions)
+        
+        # Check for midpoint (中点)
+        if '中点' in problem_text:
+            midpoint_conditions = self._extract_midpoint_conditions(problem_text, points)
+            conditions.extend(midpoint_conditions)
         
         # Infer required objects from points
         required_objects = self._infer_objects_from_points(points, problem_text)
@@ -241,6 +255,141 @@ class ProblemParser:
         
         return conditions
     
+    def _extract_point_on_conditions(self, text: str, points: List[str]) -> List[Dict[str, Any]]:
+        """Extract point-on-segment/line conditions."""
+        conditions = []
+        
+        # Pattern: D在AB上 or D、E分别在AB、AC上
+        # Match: X在YZ上
+        pattern1 = r'([A-Z])在([A-Z]{2})上'
+        matches = re.findall(pattern1, text)
+        
+        for match in matches:
+            point = match[0]
+            segment = list(match[1])
+            conditions.append({
+                "type": "point_on_segment",
+                "point": point,
+                "segment": segment
+            })
+        
+        # Pattern: D、E分别在AB、AC上
+        pattern2 = r'([A-Z])、([A-Z])分别在([A-Z]{2})、([A-Z]{2})上'
+        matches = re.findall(pattern2, text)
+        
+        for match in matches:
+            point1 = match[0]
+            point2 = match[1]
+            segment1 = list(match[2])
+            segment2 = list(match[3])
+            
+            conditions.append({
+                "type": "point_on_segment",
+                "point": point1,
+                "segment": segment1
+            })
+            conditions.append({
+                "type": "point_on_segment",
+                "point": point2,
+                "segment": segment2
+            })
+        
+        return conditions
+    
+    def _extract_midpoint_conditions(self, text: str, points: List[str]) -> List[Dict[str, Any]]:
+        """Extract midpoint conditions."""
+        conditions = []
+        
+        # Pattern: M是AB的中点 or M为AB中点
+        pattern = r'([A-Z])[是为]([A-Z]{2})[的]?中点'
+        matches = re.findall(pattern, text)
+        
+        for match in matches:
+            point = match[0]
+            segment = list(match[1])
+            conditions.append({
+                "type": "midpoint_of",
+                "point": point,
+                "segment": segment
+            })
+        
+        return conditions
+    
+    def _validate_and_correct_parsed_data(self, parsed_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Validate and auto-correct common mistakes in parsed data.
+        
+        Args:
+            parsed_data: Parsed problem data
+            
+        Returns:
+            Corrected parsed data
+        """
+        conditions = parsed_data.get("verification_conditions", [])
+        corrected_conditions = []
+        
+        for condition in conditions:
+            cond_type = condition.get("type", "")
+            corrected = dict(condition)  # Copy
+            
+            # Fix angle_value: ensure points are nested
+            if cond_type == "angle_value":
+                points = condition.get("points", [])
+                if points and not isinstance(points[0], list):
+                    # Points are flat: ["A", "B", "C"] → [["A", "B", "C"]]
+                    corrected["points"] = [points]
+                    print(f"Auto-corrected angle_value: nested points list")
+            
+            # Fix angle_equality: ensure points are nested
+            elif cond_type == "angle_equality":
+                points = condition.get("points", [])
+                if points and len(points) == 6:
+                    # Flat list of 6 points → [[p1, p2, p3], [p4, p5, p6]]
+                    corrected["points"] = [points[:3], points[3:]]
+                    print(f"Auto-corrected angle_equality: split into two angles")
+            
+            # Validate parallel/perpendicular use "objects" field
+            elif cond_type in ["parallel", "perpendicular"]:
+                if "lines" in condition and "objects" not in condition:
+                    corrected["objects"] = condition["lines"]
+                    del corrected["lines"]
+                    print(f"Auto-corrected {cond_type}: renamed 'lines' to 'objects'")
+            
+            # Validate all referenced points exist
+            points_in_condition = self._extract_points_from_condition(corrected)
+            all_points = parsed_data.get("required_objects", {}).get("points", [])
+            
+            # Add missing points to required_objects
+            for point in points_in_condition:
+                if point not in all_points:
+                    all_points.append(point)
+                    print(f"Auto-added missing point: {point}")
+            
+            corrected_conditions.append(corrected)
+        
+        parsed_data["verification_conditions"] = corrected_conditions
+        return parsed_data
+    
+    def _extract_points_from_condition(self, condition: Dict) -> List[str]:
+        """Extract all point labels from a condition."""
+        points = []
+        
+        def extract_from_value(val):
+            if isinstance(val, str) and len(val) == 1 and val.isupper():
+                points.append(val)
+            elif isinstance(val, list):
+                for item in val:
+                    extract_from_value(item)
+            elif isinstance(val, dict):
+                for v in val.values():
+                    extract_from_value(v)
+        
+        for key, value in condition.items():
+            if key != "type":
+                extract_from_value(value)
+        
+        return points
+    
     def _infer_objects_from_points(self, points: List[str], text: str) -> Dict[str, List]:
         """Infer required geometric objects from points and text."""
         required_objects = {
@@ -314,18 +463,84 @@ Return a JSON object with this structure:
     {{"type": "perpendicular", "objects": [["A", "B"], ["C", "D"]]}},
     {{"type": "angle_value", "points": [["A", "B", "C"]], "value": 50}},
     {{"type": "angle_equality", "points": [["A", "B", "C"], ["D", "E", "F"]]}},
+    {{"type": "segment_equality", "segments": [["A", "B"], ["C", "D"]]}},
+    {{"type": "collinear", "points": ["A", "B", "C"]}},
+    {{"type": "not_collinear", "points": ["A", "B", "C"]}},
+    {{"type": "point_on_line", "point": "D", "line": ["A", "B"]}},
+    {{"type": "point_on_segment", "point": "D", "segment": ["A", "B"]}},
+    {{"type": "point_on_circle", "point": "A", "circle_center": "O"}},
     {{"type": "angle_bisector", "line": ["E", "G"], "angle_points": ["B", "E", "F"]}},
-    ...
+    {{"type": "midpoint_of", "point": "M", "segment": ["A", "B"]}},
+    {{"type": "distance_equals", "segment": ["A", "B"], "value": 10.0}},
+    {{"type": "triangle_valid", "points": ["A", "B", "C"]}},
+    {{"type": "concyclic", "points": ["A", "B", "C", "D"]}},
+    {{"type": "concurrent", "lines": [["A", "B"], ["C", "D"], ["E", "F"]]}}
   ]
 }}
 
-IMPORTANT RULES:
-1. For "angle_value" conditions, ALWAYS use 3 points in nested format [["P1", "P2", "P3"]] where P2 is the vertex of the angle.
-2. If the problem text mentions "∠A=80°" in triangle ABC, convert it to [["B", "A", "C"]] or [["C", "A", "B"]] with A as the middle point (vertex).
-3. NEVER use single-point angles like [["A"]] or flat arrays like ["A", "B", "C"] for angle_value.
-4. The "points" field for angle_value must be a nested list: [["point1", "point2", "point3"]].
+CRITICAL RULES FOR CONDITION TYPES:
 
-Only return the JSON object, no other text.
+1. **angle_value**: ALWAYS use 3 points in nested format [["P1", "P2", "P3"]] where P2 is the vertex.
+   - ✓ CORRECT: {{"type": "angle_value", "points": [["B", "A", "C"]], "value": 80}}
+   - ✗ WRONG: {{"type": "angle_value", "points": ["B", "A", "C"], "value": 80}}
+   - If text says "∠A=80°" in triangle ABC, use [["B", "A", "C"]] or [["C", "A", "B"]] with A in the middle.
+
+2. **parallel**: Use "objects" field with two 2-point lines.
+   - ✓ CORRECT: {{"type": "parallel", "objects": [["A", "B"], ["C", "D"]]}}
+   - Chinese: "AB∥CD" or "AB平行CD"
+
+3. **perpendicular**: Use "objects" field with two 2-point lines.
+   - ✓ CORRECT: {{"type": "perpendicular", "objects": [["A", "B"], ["C", "D"]]}}
+   - Chinese: "AB⊥CD" or "AB垂直CD"
+
+4. **point_on_segment**: When text says "D在AB上" (D is on AB).
+   - ✓ CORRECT: {{"type": "point_on_segment", "point": "D", "segment": ["A", "B"]}}
+   - Use this instead of "point_on_line" when the point must be BETWEEN the endpoints.
+
+5. **angle_bisector**: When a line bisects an angle.
+   - ✓ CORRECT: {{"type": "angle_bisector", "line": ["E", "G"], "angle_points": ["B", "E", "F"]}}
+   - Chinese: "EG平分∠BEF"
+
+6. **midpoint_of**: When a point is the midpoint of a segment.
+   - ✓ CORRECT: {{"type": "midpoint_of", "point": "M", "segment": ["A", "B"]}}
+   - Chinese: "M是AB的中点" or "M为AB中点"
+
+7. **triangle_valid**: For ensuring non-degenerate triangles (usually implicit).
+   - ✓ CORRECT: {{"type": "triangle_valid", "points": ["A", "B", "C"]}}
+
+STEP-BY-STEP PARSING GUIDE:
+
+Step 1: Extract all point names (uppercase letters like A, B, C, D, E, etc.)
+
+Step 2: Identify geometric shapes:
+- Triangle: "三角形ABC" → polygon ["A", "B", "C"]
+- Quadrilateral: "四边形ABCD" → polygon ["A", "B", "C", "D"]
+- Circle: "圆O" or "⊙O" → circle with center "O"
+
+Step 3: Extract segments and lines mentioned:
+- Any two consecutive points in a shape form a segment
+- Lines explicitly mentioned (e.g., "直线AB")
+
+Step 4: Parse conditions:
+- Parallel: "∥" or "平行"
+- Perpendicular: "⊥" or "垂直"
+- Angles: "∠ABC=50°" → angle_value with proper nesting
+- Points on segments/lines: "D在AB上" or "D、E分别在AB、AC上"
+- Bisectors: "平分"
+- Equal segments: "AB=CD"
+
+Step 5: Validate JSON structure:
+- All angle_value conditions must have nested points: [["A", "B", "C"]]
+- All point references must be in the points list
+- All segment/line references must use valid point pairs
+
+COMMON MISTAKES TO AVOID:
+- ✗ {{"type": "angle_value", "points": ["A", "B", "C"]}} // Missing nested list
+- ✗ {{"type": "parallel", "lines": [...]}} // Use "objects" not "lines"
+- ✗ {{"type": "point_on_line", ...}} when point is on segment // Use "point_on_segment"
+- ✗ Forgetting to include all points mentioned in the problem
+
+Only return the JSON object, no other text or markdown formatting.
 """
         return prompt
     

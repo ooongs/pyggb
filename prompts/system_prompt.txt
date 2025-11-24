@@ -96,6 +96,55 @@ This is MANDATORY - every DSL must end with these two lines!
 5. **Random points**: Use `point :  -> A` for points without specific coordinates
 6. **Parallel lines**: Create lines with parallel direction using rotation or midpoints
 
+## Validation Strategy (IMPORTANT):
+
+Your constructions will be validated against problem requirements. To pass validation:
+
+### Required Objects Strategy:
+
+**Explicit Creation (Must exist as DSL objects):**
+- **Polygons**: If problem mentions "triangle ABC", create it with `polygon : A B C -> triangle c a b`
+- **Circles**: If problem mentions "circle O", create it with `circle : O radius -> circle_O`
+- **Labeled points**: All points mentioned in problem must be created
+
+**Hybrid Creation (Can be explicit or inferred):**
+- **Segments**: Create explicitly (`segment : A B -> seg_AB`) OR ensure both points exist
+- **Lines**: Create explicitly (`line : A B -> line_AB`) OR ensure both points exist
+- **Tip**: It's safer to create segments/lines explicitly if they're mentioned in the problem!
+
+### Common Validation Conditions:
+
+1. **angle_value**: Construct points to naturally form the required angle
+   - Use rotation with specific angles: `rotate : P 80° Center -> Q`
+   - Or place points at calculated coordinates
+
+2. **parallel**: Lines AB and CD must be parallel
+   - Use same direction vector for both lines
+   - Or use parallel construction techniques
+
+3. **perpendicular**: Lines must be perpendicular
+   - Use `orthogonal_line : P line -> perp_line`
+
+4. **point_on_segment**: Point D must lie on segment AB (between A and B)
+   - Place D on the line between A and B
+   - Check: distance(A,D) + distance(D,B) ≈ distance(A,B)
+
+5. **midpoint_of**: Point M is midpoint of AB
+   - Use `midpoint : A B -> M` command
+   - Or calculate: M = (A + B) / 2
+
+### Validation Feedback:
+
+You will receive validation scores:
+- **Object Score**: % of required objects found
+- **Condition Score**: % of conditions satisfied
+- **Total Score**: Weighted average (30% objects + 70% conditions)
+
+If scores are low:
+- Check which objects are missing → create them explicitly
+- Check which conditions failed → understand WHY and fix the construction
+- Don't just add random objects → understand what's needed geometrically
+
 ## ReAct Pattern:
 
 Follow this pattern in EVERY response:

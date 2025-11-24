@@ -87,6 +87,15 @@ class BenchmarkProblem:
 class BenchmarkDataset:
     """Manage a collection of benchmark problems."""
     
+    # Supported condition types (must match dsl_validator.py)
+    SUPPORTED_CONDITION_TYPES = {
+        "parallel", "perpendicular", "angle_value", "angle_equality",
+        "segment_equality", "collinear", "not_collinear", "concyclic",
+        "concurrent", "point_on_line", "point_on_circle", "angle_bisector",
+        "point_on_segment", "midpoint_of", "distance_equals",
+        "triangle_valid", "point_between", "concentric_circles"
+    }
+    
     def __init__(self, dataset_path: Optional[str] = None):
         """
         Initialize dataset.
@@ -172,6 +181,77 @@ class BenchmarkDataset:
     
     def __getitem__(self, idx: int) -> BenchmarkProblem:
         return self.problems[idx]
+    
+    def validate_compatibility(self, verbose: bool = True) -> Dict[str, Any]:
+        """
+        Validate dataset compatibility with validator.
+        
+        Args:
+            verbose: Print detailed report
+            
+        Returns:
+            Dictionary with validation results
+        """
+        unsupported_conditions = {}
+        total_conditions = 0
+        problems_with_issues = []
+        
+        for problem in self.problems:
+            problem_issues = []
+            
+            for condition in problem.verification_conditions:
+                total_conditions += 1
+                cond_type = condition.type
+                
+                if cond_type not in self.SUPPORTED_CONDITION_TYPES:
+                    if cond_type not in unsupported_conditions:
+                        unsupported_conditions[cond_type] = []
+                    unsupported_conditions[cond_type].append(problem.id)
+                    problem_issues.append(cond_type)
+            
+            if problem_issues:
+                problems_with_issues.append({
+                    "id": problem.id,
+                    "unsupported_types": problem_issues
+                })
+        
+        is_compatible = len(unsupported_conditions) == 0
+        
+        result = {
+            "compatible": is_compatible,
+            "total_problems": len(self.problems),
+            "total_conditions": total_conditions,
+            "problems_with_issues": len(problems_with_issues),
+            "unsupported_condition_types": unsupported_conditions,
+            "problem_details": problems_with_issues
+        }
+        
+        if verbose:
+            print("\n" + "="*70)
+            print("DATASET VALIDATION REPORT")
+            print("="*70)
+            print(f"Total Problems: {result['total_problems']}")
+            print(f"Total Conditions: {result['total_conditions']}")
+            print(f"Compatible: {'✓ YES' if is_compatible else '✗ NO'}")
+            
+            if not is_compatible:
+                print(f"\nProblems with Issues: {result['problems_with_issues']}")
+                print("\nUnsupported Condition Types:")
+                for cond_type, problem_ids in unsupported_conditions.items():
+                    print(f"  - {cond_type}: {len(problem_ids)} occurrences")
+                    print(f"    Problems: {', '.join(problem_ids[:5])}" + 
+                          (" ..." if len(problem_ids) > 5 else ""))
+                
+                print("\nSuggested Fixes:")
+                print("1. Add missing condition handlers to dsl_validator.py")
+                print("2. Update SUPPORTED_CONDITION_TYPES in benchmark_dataset.py")
+                print("3. Or re-parse dataset with updated problem_parser.py")
+            else:
+                print("\n✓ All condition types are supported!")
+            
+            print("="*70)
+        
+        return result
 
 
 class ConditionBuilder:
@@ -299,6 +379,94 @@ class ConditionBuilder:
             "type": "angle_bisector",
             "line": line,
             "angle_points": angle_points
+        }
+    
+    @staticmethod
+    def point_on_segment(point: str, segment: List[str]) -> Dict:
+        """
+        Create point-on-segment condition.
+        
+        Args:
+            point: Point label
+            segment: Two points defining the segment
+        """
+        return {
+            "type": "point_on_segment",
+            "point": point,
+            "segment": segment
+        }
+    
+    @staticmethod
+    def midpoint_of(point: str, segment: List[str]) -> Dict:
+        """
+        Create midpoint condition.
+        
+        Args:
+            point: Point that should be the midpoint
+            segment: Two points defining the segment
+        """
+        return {
+            "type": "midpoint_of",
+            "point": point,
+            "segment": segment
+        }
+    
+    @staticmethod
+    def distance_equals(segment: List[str], value: float, tolerance: float = 0.01) -> Dict:
+        """
+        Create distance equals condition.
+        
+        Args:
+            segment: Two points defining the segment
+            value: Expected distance value
+            tolerance: Tolerance for comparison (default 0.01)
+        """
+        return {
+            "type": "distance_equals",
+            "segment": segment,
+            "value": value,
+            "tolerance": tolerance
+        }
+    
+    @staticmethod
+    def triangle_valid(points: List[str]) -> Dict:
+        """
+        Create valid triangle condition (non-degenerate).
+        
+        Args:
+            points: Three points that should form a valid triangle
+        """
+        return {
+            "type": "triangle_valid",
+            "points": points
+        }
+    
+    @staticmethod
+    def point_between(point: str, endpoints: List[str]) -> Dict:
+        """
+        Create point-between condition.
+        
+        Args:
+            point: Point that should be between endpoints
+            endpoints: Two points defining the line segment
+        """
+        return {
+            "type": "point_between",
+            "point": point,
+            "endpoints": endpoints
+        }
+    
+    @staticmethod
+    def concentric_circles(centers: List[str]) -> Dict:
+        """
+        Create concentric circles condition.
+        
+        Args:
+            centers: List of circle center labels (should be same point)
+        """
+        return {
+            "type": "concentric_circles",
+            "centers": centers
         }
 
 

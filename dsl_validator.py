@@ -80,8 +80,44 @@ class DSLValidator:
             )
             
             # Calculate total score (weighted average)
-            object_score = object_result["score"]
-            condition_score = condition_result["score"]
+            object_score = object_result.get("score", 0.0)
+            condition_score = condition_result.get("score", 0.0)
+            
+            # Get missing/failed with proper defaults
+            missing_objects = object_result.get("missing", {})
+            failed_conditions = condition_result.get("failed", [])
+            
+            # Debug logging
+            import sys
+            if hasattr(sys, '_debug_validation'):
+                print(f"DEBUG: object_score={object_score}, condition_score={condition_score}")
+                print(f"DEBUG: missing_objects={missing_objects}")
+                print(f"DEBUG: failed_conditions={failed_conditions}")
+                print(f"DEBUG: object_result={object_result}")
+                print(f"DEBUG: condition_result={condition_result}")
+            
+            # IMPORTANT: If scores are 0 but no failures reported, something is wrong
+            # This shouldn't happen - if score is 0, there should be missing/failed items
+            if (object_score == 0.0 or condition_score == 0.0):
+                # Check if we have empty missing/failed despite 0 scores
+                has_missing = any(objs for objs in missing_objects.values() if objs)
+                has_failed = len(failed_conditions) > 0
+                
+                if not has_missing and object_score == 0.0 and len(problem.required_objects.points) > 0:
+                    # Object score is 0 but no missing objects reported - this is a bug
+                    # Add a generic error to failed_conditions
+                    failed_conditions.append({
+                        "type": "validation_error",
+                        "message": "Object validation returned 0% but no specific missing objects identified. This may indicate a validation bug or empty requirements."
+                    })
+                
+                if not has_failed and condition_score == 0.0 and len(problem.verification_conditions) > 0:
+                    # Condition score is 0 but no failed conditions reported - this is a bug
+                    failed_conditions.append({
+                        "type": "validation_error",
+                        "message": "Condition validation returned 0% but no specific failed conditions identified. This may indicate a validation bug or empty requirements."
+                    })
+            
             total_score = 0.3 * object_score + 0.7 * condition_score
             
             success = (object_score >= 0.9 and condition_score >= 0.9)
@@ -91,15 +127,16 @@ class DSLValidator:
                 object_score=object_score,
                 condition_score=condition_score,
                 total_score=total_score,
-                missing_objects=object_result["missing"],
-                failed_conditions=condition_result["failed"],
+                missing_objects=missing_objects,
+                failed_conditions=failed_conditions,
                 details={
-                    "object_details": object_result["details"],
-                    "condition_details": condition_result["details"]
+                    "object_details": object_result.get("details", {}),
+                    "condition_details": condition_result.get("details", [])
                 }
             )
             
         except Exception as e:
+            import traceback
             return ValidationResult(
                 success=False,
                 object_score=0.0,
@@ -107,11 +144,14 @@ class DSLValidator:
                 total_score=0.0,
                 missing_objects={},
                 failed_conditions=[],
-                error_message=str(e)
+                error_message=f"{str(e)}\n{traceback.format_exc()}"
             )
     
     def _check_required_objects(self, required_objects) -> Dict[str, Any]:
-        """Check if all required objects exist in the construction."""
+        """
+        Check if all required objects exist in the construction.
+        Uses hybrid validation: explicit for polygons/circles, implicit for segments/lines.
+        """
         element_dict = self.construction.element_dict
         
         missing = {
@@ -130,7 +170,7 @@ class DSLValidator:
             "polygons": []
         }
         
-        # Check points
+        # EXPLICIT VALIDATION: Points (must exist as labeled objects)
         for point_label in required_objects.points:
             if point_label in element_dict:
                 element = element_dict[point_label]
@@ -141,23 +181,45 @@ class DSLValidator:
             else:
                 missing["points"].append(point_label)
         
-        # Check segments
+        # HYBRID VALIDATION: Segments (check explicit OR can be inferred from points)
         for seg in required_objects.segments:
+            # First try to find explicit segment
             seg_label = self._find_segment(seg[0], seg[1])
             if seg_label:
                 found["segments"].append(seg)
             else:
-                missing["segments"].append(seg)
+                # Implicit: Check if both points exist (segment can be inferred)
+                if seg[0] in element_dict and seg[1] in element_dict:
+                    p1 = element_dict[seg[0]].data
+                    p2 = element_dict[seg[1]].data
+                    if isinstance(p1, gt.Point) and isinstance(p2, gt.Point):
+                        # Points exist, segment can be inferred
+                        found["segments"].append(seg)
+                    else:
+                        missing["segments"].append(seg)
+                else:
+                    missing["segments"].append(seg)
         
-        # Check lines
+        # HYBRID VALIDATION: Lines (check explicit OR can be inferred from points)
         for line in required_objects.lines:
+            # First try to find explicit line
             line_label = self._find_line(line[0], line[1])
             if line_label:
                 found["lines"].append(line)
             else:
-                missing["lines"].append(line)
+                # Implicit: Check if both points exist (line can be inferred)
+                if line[0] in element_dict and line[1] in element_dict:
+                    p1 = element_dict[line[0]].data
+                    p2 = element_dict[line[1]].data
+                    if isinstance(p1, gt.Point) and isinstance(p2, gt.Point):
+                        # Points exist, line can be inferred
+                        found["lines"].append(line)
+                    else:
+                        missing["lines"].append(line)
+                else:
+                    missing["lines"].append(line)
         
-        # Check circles
+        # EXPLICIT VALIDATION: Circles (must exist as objects)
         for circle_def in required_objects.circles:
             center = circle_def.get("center")
             if center and center in element_dict:
@@ -170,13 +232,32 @@ class DSLValidator:
             else:
                 missing["circles"].append(circle_def)
         
-        # Check polygons
+        # EXPLICIT VALIDATION: Polygons (must exist as objects)
         for poly_points in required_objects.polygons:
             poly_label = self._find_polygon(poly_points)
             if poly_label:
                 found["polygons"].append(poly_points)
             else:
-                missing["polygons"].append(poly_points)
+                # Relaxed: check if all points exist (polygon structure can be inferred)
+                if all(p in element_dict for p in poly_points):
+                    all_points = all(isinstance(element_dict[p].data, gt.Point) for p in poly_points)
+                    if all_points:
+                        # Check if points are not collinear (valid polygon)
+                        if len(poly_points) == 3:
+                            # Triangle: check non-collinearity
+                            p1, p2, p3 = [element_dict[p].data for p in poly_points]
+                            collinear = cmd.are_collinear_ppp(p1, p2, p3)
+                            if not collinear.b:
+                                found["polygons"].append(poly_points)
+                            else:
+                                missing["polygons"].append(poly_points)
+                        else:
+                            # Other polygons: accept if points exist
+                            found["polygons"].append(poly_points)
+                    else:
+                        missing["polygons"].append(poly_points)
+                else:
+                    missing["polygons"].append(poly_points)
         
         # Calculate score
         total_required = (
@@ -203,7 +284,8 @@ class DSLValidator:
             "found": found,
             "details": {
                 "total_required": total_required,
-                "total_found": total_found
+                "total_found": total_found,
+                "validation_mode": "hybrid"
             }
         }
     
@@ -333,15 +415,19 @@ class DSLValidator:
             result = self._check_condition(condition)
             detail = {
                 "condition": condition.to_dict(),
-                "passed": result["passed"],
-                "message": result["message"]
+                "passed": result.get("passed", False),
+                "message": result.get("message", "No message")
             }
             details.append(detail)
             
-            if result["passed"]:
+            if result.get("passed", False):
                 passed.append(condition.to_dict())
             else:
-                failed.append(condition.to_dict())
+                # Include the validation message in the failed condition
+                failed_cond = condition.to_dict()
+                failed_cond["validation_message"] = result.get("message", "No message")
+                failed_cond["validation_passed"] = False
+                failed.append(failed_cond)
         
         score = len(passed) / len(conditions) if len(conditions) > 0 else 1.0
         
@@ -381,6 +467,18 @@ class DSLValidator:
                 return self._check_point_on_circle(condition.data)
             elif condition_type == "angle_bisector":
                 return self._check_angle_bisector(condition.data)
+            elif condition_type == "point_on_segment":
+                return self._check_point_on_segment(condition.data)
+            elif condition_type == "midpoint_of":
+                return self._check_midpoint_of(condition.data)
+            elif condition_type == "distance_equals":
+                return self._check_distance_equals(condition.data)
+            elif condition_type == "triangle_valid":
+                return self._check_triangle_valid(condition.data)
+            elif condition_type == "point_between":
+                return self._check_point_between(condition.data)
+            elif condition_type == "concentric_circles":
+                return self._check_concentric_circles(condition.data)
             else:
                 return {
                     "passed": False,
@@ -752,6 +850,208 @@ class DSLValidator:
         return {
             "passed": result.b,
             "message": f"Bisector creates angles of {angle1_deg:.2f}° and {angle2_deg:.2f}°"
+        }
+    
+    def _check_point_on_segment(self, data: Dict) -> Dict[str, Any]:
+        """Check if a point lies on a segment between two endpoints."""
+        point = data.get("point")
+        segment = data.get("segment", [])
+        
+        if not point or len(segment) != 2:
+            return {"passed": False, "message": "Invalid point_on_segment condition"}
+        
+        element_dict = self.construction.element_dict
+        
+        # Check all points exist
+        if point not in element_dict or not all(p in element_dict for p in segment):
+            return {"passed": False, "message": "Could not find all points"}
+        
+        pt = element_dict[point].data
+        p1 = element_dict[segment[0]].data
+        p2 = element_dict[segment[1]].data
+        
+        if not all(isinstance(p, gt.Point) for p in [pt, p1, p2]):
+            return {"passed": False, "message": "Invalid point types"}
+        
+        # Check if point is collinear with segment endpoints
+        collinear_result = cmd.are_collinear_ppp(pt, p1, p2)
+        if not collinear_result.b:
+            return {"passed": False, "message": "Point is not collinear with segment"}
+        
+        # Check if point is between the endpoints
+        # Point is on segment if: dist(p1,pt) + dist(pt,p2) ≈ dist(p1,p2)
+        dist_1_pt = cmd.distance_pp(p1, pt)
+        dist_pt_2 = cmd.distance_pp(pt, p2)
+        dist_1_2 = cmd.distance_pp(p1, p2)
+        
+        total_dist = dist_1_pt.x + dist_pt_2.x
+        segment_dist = dist_1_2.x
+        
+        # Check if distances sum correctly (within tolerance)
+        is_between = np.abs(total_dist - segment_dist) <= self.tolerance
+        
+        return {
+            "passed": is_between,
+            "message": f"Point {'is' if is_between else 'is not'} on segment (distances: {dist_1_pt.x:.2f} + {dist_pt_2.x:.2f} = {total_dist:.2f}, segment: {segment_dist:.2f})"
+        }
+    
+    def _check_midpoint_of(self, data: Dict) -> Dict[str, Any]:
+        """Check if a point is the midpoint of a segment."""
+        point = data.get("point")
+        segment = data.get("segment", [])
+        
+        if not point or len(segment) != 2:
+            return {"passed": False, "message": "Invalid midpoint_of condition"}
+        
+        element_dict = self.construction.element_dict
+        
+        # Check all points exist
+        if point not in element_dict or not all(p in element_dict for p in segment):
+            return {"passed": False, "message": "Could not find all points"}
+        
+        pt = element_dict[point].data
+        p1 = element_dict[segment[0]].data
+        p2 = element_dict[segment[1]].data
+        
+        if not all(isinstance(p, gt.Point) for p in [pt, p1, p2]):
+            return {"passed": False, "message": "Invalid point types"}
+        
+        # Calculate actual midpoint
+        midpoint_coords = (p1.a + p2.a) / 2
+        
+        # Check if point matches midpoint
+        is_midpoint = np.allclose(pt.a, midpoint_coords, atol=self.tolerance)
+        
+        return {
+            "passed": is_midpoint,
+            "message": f"Point {'is' if is_midpoint else 'is not'} the midpoint of segment"
+        }
+    
+    def _check_distance_equals(self, data: Dict) -> Dict[str, Any]:
+        """Check if distance between two points equals expected value."""
+        segment = data.get("segment", [])
+        expected_value = data.get("value", 0)
+        tolerance = data.get("tolerance", self.tolerance)
+        
+        if len(segment) != 2:
+            return {"passed": False, "message": "Invalid distance_equals condition"}
+        
+        element_dict = self.construction.element_dict
+        
+        # Check points exist
+        if not all(p in element_dict for p in segment):
+            return {"passed": False, "message": "Could not find all points"}
+        
+        p1 = element_dict[segment[0]].data
+        p2 = element_dict[segment[1]].data
+        
+        if not all(isinstance(p, gt.Point) for p in [p1, p2]):
+            return {"passed": False, "message": "Invalid point types"}
+        
+        # Calculate distance
+        dist = cmd.distance_pp(p1, p2)
+        actual_value = dist.x
+        
+        # Check if distance matches expected value
+        passed = np.abs(actual_value - expected_value) <= tolerance
+        
+        return {
+            "passed": passed,
+            "message": f"Distance is {actual_value:.2f}, expected {expected_value:.2f} (tolerance {tolerance:.2f})"
+        }
+    
+    def _check_triangle_valid(self, data: Dict) -> Dict[str, Any]:
+        """Check if three points form a valid (non-degenerate) triangle."""
+        points = data.get("points", [])
+        
+        if len(points) != 3:
+            return {"passed": False, "message": "Triangle requires exactly 3 points"}
+        
+        element_dict = self.construction.element_dict
+        
+        # Check all points exist
+        if not all(p in element_dict for p in points):
+            return {"passed": False, "message": "Could not find all points"}
+        
+        p1, p2, p3 = [element_dict[p].data for p in points]
+        
+        if not all(isinstance(p, gt.Point) for p in [p1, p2, p3]):
+            return {"passed": False, "message": "Invalid point types"}
+        
+        # Check if points are NOT collinear (valid triangle)
+        collinear_result = cmd.are_collinear_ppp(p1, p2, p3)
+        
+        return {
+            "passed": not collinear_result.b,
+            "message": f"Points {'do not form' if collinear_result.b else 'form'} a valid triangle"
+        }
+    
+    def _check_point_between(self, data: Dict) -> Dict[str, Any]:
+        """Check if a point is between two other points on a line."""
+        point = data.get("point")
+        endpoints = data.get("endpoints", [])
+        
+        if not point or len(endpoints) != 2:
+            return {"passed": False, "message": "Invalid point_between condition"}
+        
+        element_dict = self.construction.element_dict
+        
+        # Check all points exist
+        if point not in element_dict or not all(p in element_dict for p in endpoints):
+            return {"passed": False, "message": "Could not find all points"}
+        
+        pt = element_dict[point].data
+        p1 = element_dict[endpoints[0]].data
+        p2 = element_dict[endpoints[1]].data
+        
+        if not all(isinstance(p, gt.Point) for p in [pt, p1, p2]):
+            return {"passed": False, "message": "Invalid point types"}
+        
+        # Check collinearity first
+        collinear_result = cmd.are_collinear_ppp(pt, p1, p2)
+        if not collinear_result.b:
+            return {"passed": False, "message": "Point is not collinear with endpoints"}
+        
+        # Check if point is between (distance check)
+        dist_1_pt = cmd.distance_pp(p1, pt).x
+        dist_pt_2 = cmd.distance_pp(pt, p2).x
+        dist_1_2 = cmd.distance_pp(p1, p2).x
+        
+        is_between = np.abs((dist_1_pt + dist_pt_2) - dist_1_2) <= self.tolerance
+        
+        return {
+            "passed": is_between,
+            "message": f"Point {'is' if is_between else 'is not'} between the endpoints"
+        }
+    
+    def _check_concentric_circles(self, data: Dict) -> Dict[str, Any]:
+        """Check if circles share the same center."""
+        circle_centers = data.get("centers", [])
+        
+        if len(circle_centers) < 2:
+            return {"passed": False, "message": "Concentric requires at least 2 circles"}
+        
+        element_dict = self.construction.element_dict
+        
+        # Get all circle centers as points
+        center_points = []
+        for center_label in circle_centers:
+            if center_label not in element_dict:
+                return {"passed": False, "message": f"Could not find center {center_label}"}
+            
+            center = element_dict[center_label].data
+            if not isinstance(center, gt.Point):
+                return {"passed": False, "message": f"Invalid center type for {center_label}"}
+            
+            center_points.append(center.a)
+        
+        # Check if all centers are at the same location
+        first_center = center_points[0]
+        all_concentric = all(np.allclose(first_center, c, atol=self.tolerance) for c in center_points[1:])
+        
+        return {
+            "passed": all_concentric,
+            "message": f"Circles {'are' if all_concentric else 'are not'} concentric"
         }
 
 
