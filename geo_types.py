@@ -135,7 +135,7 @@ class Ray(Line):
         normal_vec = -vector_perp_rot(vec)
         c = np.dot(start_point, normal_vec)
         Line.__init__(self, normal_vec, c)
-        self.start_point = start_point
+        self.start_point = np.array(start_point)  # Copy to avoid reference sharing
 
     def translate(self, vec):
         self.c += np.dot(vec, self.n)
@@ -165,7 +165,7 @@ class Ray(Line):
 
 class Angle:
     def __init__(self, p, v1, v2):
-        self.p = p
+        self.p = np.array(p)  # Copy to avoid reference sharing
         self.angle = np.angle(a_to_cpx(v2) / a_to_cpx(v1))
 
         if self.angle < 0:
@@ -175,8 +175,8 @@ class Angle:
 
         self.start_angle = np.angle(a_to_cpx(v1))
         self.end_angle = self.start_angle + self.angle
-        self.v1 = v1
-        self.v2 = v2
+        self.v1 = np.array(v1)  # Copy to avoid reference sharing
+        self.v2 = np.array(v2)  # Copy to avoid reference sharing
         max_r = min(np.linalg.norm(v1), np.linalg.norm(v2))*0.45
         self.r = min(max_r, 30 / self.angle**0.5)
 

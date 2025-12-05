@@ -63,8 +63,8 @@ To ensure your construction validates correctly:
    - Example: If A is at (0,0) and B at (200,0), D could be at (80,0)
 
 3. **Parallel lines:**
-   - Use same direction vectors or rotation
-   - Example: If BC has direction (dx,dy), line through D parallel to BC uses same direction
+   - Use `parallel_line : Point line -> parallel_line` to create a line through Point parallel to line
+   - Example: `parallel_line : D line_BC -> line_DE` creates line through D parallel to BC
 
 4. **Perpendicular lines:**
    - Use `orthogonal_line : Point line -> perpendicular`

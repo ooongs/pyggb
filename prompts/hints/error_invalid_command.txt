@@ -1,0 +1,26 @@
+### ⚠️ Invalid Command Error
+
+The command you used doesn't exist.
+
+**Available commands:**
+
+| Category | Commands |
+|----------|----------|
+| Points | `point` |
+| Lines | `line`, `segment`, `ray`, `line_bisector` |
+| Circles | `circle`, `incircle`, `circumcircle` |
+| Polygons | `polygon` |
+| Angles | `angle`, `rotate` |
+| Intersections | `intersect` |
+| Constructions | `midpoint`, `orthogonal_line`, `parallel_line`, `angular_bisector` |
+| Centers | `incenter`, `circumcenter`, `centroid`, `orthocenter` |
+| Measurements | `distance`, `const` |
+| Arithmetic | `sum`, `minus`, `product`, `ratio` |
+| Verification | `equality`, `prove` |
+
+**Common mistakes:**
+- `perpendicular` → Use `orthogonal_line`
+- `parallel` → Use `parallel_line`
+- `bisector` → Use `line_bisector` or `angular_bisector`
+
+

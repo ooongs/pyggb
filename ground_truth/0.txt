@@ -1,0 +1,35 @@
+point : 0 0 -> A
+# Place B on the x-axis
+point : 10 0 -> B
+# Place C such that ∠A=80°, ∠B=60°, ∠C=40°
+# Use law of sines to find C's coordinates
+# Let AB = 10, so:
+# AC / sin(60°) = 10 / sin(40°)
+# AC = 10 * sin(60°) / sin(40°)
+const Measure 10 -> AB
+const Measure 60 -> angle_B
+const Measure 40 -> angle_C
+const Measure 80 -> angle_A
+# Calculate AC
+# sin(60°) ≈ 0.8660, sin(40°) ≈ 0.6428
+const Measure 0.8660 -> sin60
+const Measure 0.6428 -> sin40
+product : AB sin60 -> num_AC
+ratio : num_AC sin40 -> AC
+# Place C at (AC*cos(80°), AC*sin(80°))
+const Measure 0.1736 -> cos80
+const Measure 0.9848 -> sin80
+product : AC cos80 -> Cx
+product : AC sin80 -> Cy
+point : Cx Cy -> C
+# Draw triangle
+polygon : A B C -> triangle c a b
+# Draw BC
+segment : B C -> seg_BC
+# Place D on AB (choose a point between A and B)
+point : 3 0 -> D
+# Draw line through D parallel to BC
+line : B C -> line_BC
+line : A C -> line_AC
+parallel_line : D line_BC -> line_DE
+intersect : line_DE line_AC -> E

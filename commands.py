@@ -2,7 +2,7 @@ import numpy as np
 import geo_types as gt
 
 def angle_ppp(p1, p2, p3):
-    return gt.Angle(p2.a, p2.a-p1.a, p2.a-p3.a)
+    return gt.Angle(p2.a.copy(), p2.a-p1.a, p2.a-p3.a)  # .copy() 추가!
 
 def angular_bisector_ll(l1, l2):
     x = intersect_ll(l1, l2)
@@ -418,6 +418,18 @@ def orthogonal_line_pr(point, ray):
 
 def orthogonal_line_ps(point, segment):
     return orthogonal_line_pl(point, segment)
+
+def parallel_line_pl(point, line):
+    """한 점을 지나고 주어진 line과 평행한 line 생성"""
+    return gt.Line(line.n, np.dot(line.n, point.a))
+
+def parallel_line_ps(point, segment):
+    """한 점을 지나고 주어진 segment와 평행한 line 생성"""
+    return parallel_line_pl(point, segment)
+
+def parallel_line_pr(point, ray):
+    """한 점을 지나고 주어진 ray와 평행한 line 생성"""
+    return parallel_line_pl(point, ray)
 
 def point_():
     return gt.Point(np.random.normal(size = 2))

@@ -1,0 +1,36 @@
+### ⚠️ Invalid Constraint Error
+
+DSL is for CONSTRUCTING geometry, not for asserting constraints!
+
+**What you CANNOT do:**
+```
+# WRONG - These don't work!
+equality : angle_ABC 80 -> expr  # Can't assert angle value
+parallel : line1 line2 -> expr   # Can't assert parallel
+perpendicular : l1 l2 -> expr    # Can't assert perpendicular
+```
+
+**How to achieve constraints through construction:**
+
+1. **Specific angle value → Use rotation**
+```
+point : 0 0 -> A
+point : 100 0 -> B
+rotate : B 80 A -> C  # Angle CAB = 80°
+```
+
+2. **Parallel lines → Use parallel_line command**
+```
+line : A B -> line_AB
+parallel_line : C line_AB -> line_CD  # CD ∥ AB
+```
+
+3. **Perpendicular lines → Use orthogonal_line command**
+```
+line : A B -> line_AB
+orthogonal_line : C line_AB -> perp  # perp ⊥ AB
+```
+
+**Tip**: Construct geometry to naturally have the desired properties!
+
+

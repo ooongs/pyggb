@@ -1,0 +1,42 @@
+### ⚠️ Type Mismatch Error
+
+You provided the wrong type of input to a command.
+
+**Common type errors:**
+
+1. **Circle needs center point, not coordinates**
+```
+# WRONG:
+circle : 100 100 50 -> c  # Can't use raw coordinates!
+# CORRECT:
+point : 100 100 -> O
+circle : O 50 -> c
+```
+
+2. **Line needs two points**
+```
+# WRONG:
+line : A -> line_A  # Need two points!
+# CORRECT:
+line : A B -> line_AB
+```
+
+3. **Rotate needs point, angle, center**
+```
+# WRONG:
+rotate : A B -> C  # Missing angle!
+# CORRECT:
+rotate : A 60 B -> C  # Rotate A by 60° around B
+```
+
+4. **Intersect needs geometric objects**
+```
+# WRONG:
+intersect : A B -> P  # A, B are points!
+# CORRECT:
+intersect : line1 line2 -> P  # Use lines/circles
+```
+
+**Tip**: Check what type of input each command expects.
+
+

@@ -220,7 +220,7 @@ def main():
     parser.add_argument(
         "--max-iter",
         type=int,
-        default=10,
+        default=5,
         help="Maximum iterations per problem"
     )
     

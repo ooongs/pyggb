@@ -136,7 +136,7 @@ class AgentLogger:
                         else:
                             # Regular error
                             f.write(f"{error}\n")
-                
+                print(validation_result)
                 # Log validation results if available
                 if validation_result:
                     f.write(f"\nVALIDATION RESULTS:\n")
@@ -154,6 +154,20 @@ class AgentLogger:
                         f.write(f"Total Score: {validation_result.get('total_score', 0):.1%}\n")
                         f.write(f"Success: {'✓ YES' if validation_result.get('success', False) else '✗ NO'}\n")
                         
+                        # Details section with found objects
+                        if validation_result.get('details'):
+                            details = validation_result['details']
+                            
+                            # Show found objects
+                            found_objects = details.get('found_objects', {})
+                            has_found = any(objs for objs in found_objects.values() if objs)
+                            
+                            if has_found:
+                                f.write(f"\n📦 Found Objects:\n")
+                                for obj_type, objs in found_objects.items():
+                                    if objs:
+                                        f.write(f"  • {obj_type}: {objs}\n")
+                        
                         # Missing objects
                         missing_objects = validation_result.get('missing_objects', {})
                         has_missing = any(objs for objs in missing_objects.values() if objs)
@@ -163,37 +177,34 @@ class AgentLogger:
                                 if objs:
                                     f.write(f"  • {obj_type}: {objs}\n")
                         
-                        # Failed conditions
+                        # Passed and Failed conditions with detailed messages
+                        cond_details = validation_result.get('details', {}).get('condition_details', [])
                         failed_conditions = validation_result.get('failed_conditions', [])
-                        if failed_conditions:
-                            f.write(f"\n❌ Failed Conditions ({len(failed_conditions)} total):\n")
-                            for i, fc in enumerate(failed_conditions, 1):
-                                cond_type = fc.get('type', 'unknown')
-                                f.write(f"\n  {i}. {cond_type.upper().replace('_', ' ')}\n")
+                        
+                        # Show passed conditions
+                        passed_details = [d for d in cond_details if d.get('passed', False)]
+                        if passed_details:
+                            f.write(f"\n✅ Passed Conditions ({len(passed_details)} total):\n")
+                            for detail in passed_details:
+                                cond = detail.get('condition', {})
+                                message = detail.get('message', 'No message')
+                                cond_type = cond.get('type', 'unknown')
+                                f.write(f"  ✓ {cond_type}: {message}\n")
+                        
+                        # Show failed conditions with enhanced details
+                        failed_details = [d for d in cond_details if not d.get('passed', False)]
+                        if failed_details:
+                            f.write(f"\n❌ Failed Conditions ({len(failed_details)} total):\n")
+                            for detail in failed_details:
+                                cond = detail.get('condition', {})
+                                message = detail.get('message', 'No message')
+                                cond_type = cond.get('type', 'unknown')
+                                f.write(f"  ✗ {cond_type}: {message}\n")
                                 
-                                validation_msg = fc.get('validation_message')
-                                if validation_msg:
-                                    f.write(f"     ➜ {validation_msg}\n")
-                                
-                                if cond_type == 'angle_value':
-                                    points = fc.get('points', [])
-                                    expected_value = fc.get('value', 'N/A')
-                                    f.write(f"     Points: {points}\n")
-                                    f.write(f"     Expected: {expected_value}°\n")
-                                elif cond_type in ['parallel', 'perpendicular']:
-                                    objects = fc.get('objects', [])
-                                    f.write(f"     Lines: {objects}\n")
-                                elif cond_type == 'segment_equality':
-                                    segments = fc.get('segments', [])
-                                    f.write(f"     Segments: {segments}\n")
-                                elif cond_type == 'angle_bisector':
-                                    line = fc.get('line', [])
-                                    angle_pts = fc.get('angle_points', [])
-                                    f.write(f"     Bisector: {line}\n")
-                                    f.write(f"     Angle: {angle_pts}\n")
-                                elif cond_type == 'collinear':
-                                    points = fc.get('points', [])
-                                    f.write(f"     Points: {points}\n")
+                                # Show additional parameters for context
+                                for key, value in cond.items():
+                                    if key != 'type' and value:
+                                        f.write(f"      {key}: {value}\n")
                         
                         # Show success message if all passed (and no error occurred)
                         if not has_missing and not failed_conditions and validation_result.get('total_score', 0) > 0:
@@ -242,6 +253,20 @@ class AgentLogger:
                     f.write(f"Total Score: {validation_result.get('total_score', 0):.1%}\n")
                     f.write(f"Success: {'✓ YES' if validation_result.get('success', False) else '✗ NO'}\n")
                     
+                    # Details section with found objects
+                    if validation_result.get('details'):
+                        details = validation_result['details']
+                        
+                        # Show found objects
+                        found_objects = details.get('found_objects', {})
+                        has_found = any(objs for objs in found_objects.values() if objs)
+                        
+                        if has_found:
+                            f.write(f"\n📦 Found Objects:\n")
+                            for obj_type, objs in found_objects.items():
+                                if objs:
+                                    f.write(f"  • {obj_type}: {objs}\n")
+                    
                     # Missing objects
                     missing_objects = validation_result.get('missing_objects', {})
                     has_missing = any(objs for objs in missing_objects.values() if objs)
@@ -251,54 +276,34 @@ class AgentLogger:
                             if objs:
                                 f.write(f"  • {obj_type}: {objs}\n")
                     
-                    # Failed conditions
-                    failed_conditions = validation_result.get('failed_conditions', [])
-                    if failed_conditions:
-                        f.write(f"\n❌ Failed Conditions ({len(failed_conditions)} total):\n")
-                        for i, fc in enumerate(failed_conditions, 1):
-                            cond_type = fc.get('type', 'unknown')
-                            f.write(f"\n  {i}. {cond_type.upper().replace('_', ' ')}\n")
-                            
-                            # Show validation message if available
-                            validation_msg = fc.get('validation_message')
-                            if validation_msg:
-                                f.write(f"     ➜ {validation_msg}\n")
-                            
-                            # Show condition details based on type
-                            if cond_type == 'angle_value':
-                                points = fc.get('points', [])
-                                expected_value = fc.get('value', 'N/A')
-                                f.write(f"     Points: {points}\n")
-                                f.write(f"     Expected: {expected_value}°\n")
-                            
-                            elif cond_type in ['parallel', 'perpendicular']:
-                                objects = fc.get('objects', [])
-                                f.write(f"     Lines: {objects}\n")
-                            
-                            elif cond_type == 'segment_equality':
-                                segments = fc.get('segments', [])
-                                f.write(f"     Segments: {segments}\n")
-                            
-                            elif cond_type == 'angle_bisector':
-                                line = fc.get('line', [])
-                                angle_points = fc.get('angle_points', [])
-                                f.write(f"     Bisector: {line}\n")
-                                f.write(f"     Angle: {angle_points}\n")
-                            
-                            elif cond_type == 'collinear':
-                                points = fc.get('points', [])
-                                f.write(f"     Points: {points}\n")
-                            
-                            else:
-                                # Generic display
-                                f.write(f"     Details: {fc}\n")
+                    # Passed and Failed conditions with detailed messages
+                    cond_details = validation_result.get('details', {}).get('condition_details', [])
                     
-                    # Show success message if all passed (and no error occurred)
-                    if not has_missing and not failed_conditions and validation_result.get('total_score', 0) > 0:
-                        f.write(f"\n✅ All objects and conditions satisfied!\n")
-                    elif validation_result.get('total_score', 0) == 0 and not has_missing and not failed_conditions:
-                        f.write(f"\n⚠️  Low scores but no detailed error information available.\n")
-                        f.write(f"    This may indicate a validation error occurred.\n")
+                    # Show passed conditions
+                    passed_details = [d for d in cond_details if d.get('passed', False)]
+                    if passed_details:
+                        f.write(f"\n✅ Passed Conditions ({len(passed_details)} total):\n")
+                        for detail in passed_details:
+                            cond = detail.get('condition', {})
+                            message = detail.get('message', 'No message')
+                            cond_type = cond.get('type', 'unknown')
+                            f.write(f"  ✓ {cond_type}: {message}\n")
+                    
+                    # Show failed conditions with enhanced details
+                    failed_details = [d for d in cond_details if not d.get('passed', False)]
+                    if failed_details:
+                        f.write(f"\n❌ Failed Conditions ({len(failed_details)} total):\n")
+                        for detail in failed_details:
+                            cond = detail.get('condition', {})
+                            message = detail.get('message', 'No message')
+                            cond_type = cond.get('type', 'unknown')
+                            f.write(f"  ✗ {cond_type}: {message}\n")
+                            
+                            # Show additional parameters for context
+                            for key, value in cond.items():
+                                if key != 'type' and value:
+                                    f.write(f"      {key}: {value}\n")
+                    
             
             f.write(f"\n{'='*80}\n")
     

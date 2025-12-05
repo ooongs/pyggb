@@ -131,7 +131,9 @@ class DSLValidator:
                 failed_conditions=failed_conditions,
                 details={
                     "object_details": object_result.get("details", {}),
-                    "condition_details": condition_result.get("details", [])
+                    "found_objects": object_result.get("found", {}),
+                    "condition_details": condition_result.get("details", []),
+                    "passed_conditions": condition_result.get("passed", [])
                 }
             )
             
@@ -153,6 +155,7 @@ class DSLValidator:
         Uses hybrid validation: explicit for polygons/circles, implicit for segments/lines.
         """
         element_dict = self.construction.element_dict
+        print("Element Dict:",element_dict)
         
         missing = {
             "points": [],
@@ -575,13 +578,26 @@ class DSLValidator:
         # Calculate angle
         angle = cmd.angle_ppp(p1, p2, p3)
         angle_degrees = np.degrees(angle.angle)
-        
-        # Check if angle matches expected value
-        passed = np.abs(angle_degrees - expected_value) <= tolerance
+
+        # Allow either the measured (CCW) angle or its reflex (360 - angle)
+        # so that geometrically equivalent 60° vs 300° do not falsely fail.
+        reflex_angle = (360.0 - angle_degrees) % 360.0
+        expected = expected_value % 360.0
+
+        diff_primary = np.abs(angle_degrees - expected)
+        diff_reflex = np.abs(reflex_angle - expected)
+        min_diff = min(diff_primary, diff_reflex)
+        passed = min_diff <= tolerance
+
+        chosen_angle = angle_degrees if diff_primary <= diff_reflex else reflex_angle
         
         return {
             "passed": passed,
-            "message": f"Angle is {angle_degrees:.2f}°, expected {expected_value}° (tolerance {tolerance}°)"
+            "message": (
+                f"Angle is {angle_degrees:.2f}° (reflex {reflex_angle:.2f}°), "
+                f"expected {expected_value}° (tolerance {tolerance}°); "
+                f"closest match: {chosen_angle:.2f}°"
+            )
         }
     
     def _check_angle_equality(self, data: Dict) -> Dict[str, Any]:

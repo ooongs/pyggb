@@ -26,6 +26,10 @@
         [
           "D",
           "E"
+        ],
+        [
+          "B",
+          "C"
         ]
       ],
       "lines": [
@@ -98,6 +102,14 @@
             "C"
           ]
         ]
+      },
+      {
+        "type": "triangle_valid",
+        "points": [
+          "A",
+          "B",
+          "C"
+        ]
       }
     ],
     "metadata": {
@@ -148,14 +160,6 @@
           "G"
         ],
         [
-          "E",
-          "B"
-        ],
-        [
-          "E",
-          "F"
-        ],
-        [
           "F",
           "G"
         ]
@@ -196,32 +200,20 @@
         ]
       },
       {
-        "type": "intersection",
-        "objects": [
-          [
-            "E",
-            "F"
-          ],
-          [
-            "A",
-            "B"
-          ]
-        ],
-        "point": "E"
+        "type": "point_on_segment",
+        "point": "E",
+        "segment": [
+          "A",
+          "B"
+        ]
       },
       {
-        "type": "intersection",
-        "objects": [
-          [
-            "E",
-            "F"
-          ],
-          [
-            "C",
-            "D"
-          ]
-        ],
-        "point": "F"
+        "type": "point_on_segment",
+        "point": "F",
+        "segment": [
+          "C",
+          "D"
+        ]
       },
       {
         "type": "angle_bisector",
@@ -236,18 +228,12 @@
         ]
       },
       {
-        "type": "intersection",
-        "objects": [
-          [
-            "E",
-            "G"
-          ],
-          [
-            "C",
-            "D"
-          ]
-        ],
-        "point": "G"
+        "type": "point_on_segment",
+        "point": "G",
+        "segment": [
+          "C",
+          "D"
+        ]
       },
       {
         "type": "angle_value",
@@ -297,6 +283,10 @@
         ],
         [
           "A",
+          "C"
+        ],
+        [
+          "A",
           "D"
         ],
         [
@@ -304,12 +294,7 @@
           "C"
         ]
       ],
-      "lines": [
-        [
-          "B",
-          "C"
-        ]
-      ],
+      "lines": [],
       "circles": [],
       "polygons": [
         [
@@ -321,10 +306,10 @@
     },
     "verification_conditions": [
       {
-        "type": "collinear",
-        "points": [
+        "type": "point_on_segment",
+        "point": "D",
+        "segment": [
           "B",
-          "D",
           "C"
         ]
       },
@@ -358,12 +343,20 @@
         "type": "angle_value",
         "points": [
           [
-            "A",
+            "C",
             "B",
-            "C"
+            "A"
           ]
         ],
         "value": 80
+      },
+      {
+        "type": "triangle_valid",
+        "points": [
+          "A",
+          "B",
+          "C"
+        ]
       }
     ],
     "metadata": {
@@ -391,7 +384,19 @@
       "circles": [],
       "polygons": []
     },
-    "verification_conditions": [],
+    "verification_conditions": [
+      {
+        "type": "angle_value",
+        "points": [
+          [
+            "",
+            "1",
+            ""
+          ]
+        ],
+        "value": 35
+      }
+    ],
     "metadata": {
       "source": "GeoQA3",
       "formal_point": [
@@ -435,6 +440,16 @@
         [
           "D",
           "A"
+        ]
+      ],
+      "lines": [
+        [
+          "D",
+          "C"
+        ],
+        [
+          "C",
+          "E"
         ],
         [
           "B",
@@ -443,16 +458,6 @@
         [
           "O",
           "D"
-        ],
-        [
-          "C",
-          "E"
-        ]
-      ],
-      "lines": [
-        [
-          "C",
-          "E"
         ]
       ],
       "circles": [
@@ -472,25 +477,44 @@
     },
     "verification_conditions": [
       {
-        "type": "cyclic_quadrilateral",
-        "points": [
-          "A",
-          "B",
-          "C",
-          "D"
-        ],
+        "type": "point_on_circle",
+        "point": "A",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "B",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "C",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "D",
         "circle_center": "O"
       },
       {
         "type": "angle_value",
         "points": [
           [
-            "D",
+            "E",
             "C",
-            "E"
+            "D"
           ]
         ],
         "value": 62
+      },
+      {
+        "type": "concyclic",
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ]
       }
     ],
     "metadata": {
@@ -524,52 +548,58 @@
       "segments": [
         [
           "A",
-          "O"
-        ],
-        [
-          "B",
-          "O"
-        ],
-        [
-          "A",
           "B"
         ],
         [
+          "B",
+          "C"
+        ],
+        [
+          "C",
+          "A"
+        ]
+      ],
+      "lines": [
+        [
+          "A",
+          "O"
+        ],
+        [
+          "B",
+          "O"
+        ],
+        [
           "A",
           "C"
         ],
         [
-          "B",
-          "C"
+          "C",
+          "B"
         ]
       ],
-      "lines": [],
       "circles": [
         {
           "center": "O",
           "radius_point": "A"
         }
       ],
-      "polygons": [
-        [
-          "A",
-          "B",
-          "C"
-        ]
-      ]
+      "polygons": []
     },
     "verification_conditions": [
       {
-        "type": "points_on_circle",
-        "circle": {
-          "center": "O",
-          "radius_point": "A"
-        },
-        "points": [
-          "A",
-          "B",
-          "C"
-        ]
+        "type": "point_on_circle",
+        "point": "A",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "B",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "C",
+        "circle_center": "O"
       },
       {
         "type": "angle_value",
@@ -581,6 +611,14 @@
           ]
         ],
         "value": 80
+      },
+      {
+        "type": "triangle_valid",
+        "points": [
+          "A",
+          "C",
+          "B"
+        ]
       }
     ],
     "metadata": {
@@ -608,8 +646,8 @@
         "B",
         "C",
         "D",
-        "O",
-        "E"
+        "E",
+        "O"
       ],
       "segments": [],
       "lines": [],
@@ -623,25 +661,32 @@
     },
     "verification_conditions": [
       {
-        "type": "cyclic",
-        "points": [
-          "A",
-          "B",
-          "C",
-          "D"
-        ],
-        "circle": {
-          "center": "O",
-          "radius_point": "A"
-        }
+        "type": "point_on_circle",
+        "point": "A",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "B",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "C",
+        "circle_center": "O"
+      },
+      {
+        "type": "point_on_circle",
+        "point": "D",
+        "circle_center": "O"
       },
       {
         "type": "angle_value",
         "points": [
           [
-            "A",
+            "C",
             "B",
-            "C"
+            "A"
           ]
         ],
         "value": 100
@@ -667,7 +712,12 @@
     "id": "1004",
     "subject": "如图,∠2+∠3+∠4=320°,则∠1=()",
     "required_objects": {
-      "points": [],
+      "points": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
       "segments": [],
       "lines": [],
       "circles": [],
@@ -675,11 +725,17 @@
     },
     "verification_conditions": [
       {
-        "type": "angle_sum",
-        "angles": [
-          "∠2",
-          "∠3",
-          "∠4"
+        "type": "angle_value",
+        "points": [
+          [
+            "2"
+          ],
+          [
+            "3"
+          ],
+          [
+            "4"
+          ]
         ],
         "value": 320
       }
@@ -707,28 +763,10 @@
         "A",
         "B",
         "C",
-        "D",
         "O"
       ],
       "segments": [],
-      "lines": [
-        [
-          "A",
-          "O"
-        ],
-        [
-          "C",
-          "O"
-        ],
-        [
-          "B",
-          "O"
-        ],
-        [
-          "D",
-          "O"
-        ]
-      ],
+      "lines": [],
       "circles": [],
       "polygons": []
     },
@@ -765,20 +803,20 @@
     "subject": "如图,BC的垂直平分线分别交AB、BC于点D和点E,连接CD,AC=DC,∠B=25°,则∠ACD的度数是()",
     "required_objects": {
       "points": [
+        "A",
         "B",
         "C",
-        "A",
         "D",
         "E"
       ],
       "segments": [
         [
-          "B",
-          "C"
-        ],
-        [
           "A",
           "B"
+        ],
+        [
+          "B",
+          "C"
         ],
         [
           "C",
@@ -787,17 +825,72 @@
         [
           "A",
           "C"
-        ],
+        ]
+      ],
+      "lines": [
         [
-          "D",
+          "B",
           "C"
         ]
       ],
-      "lines": [],
       "circles": [],
       "polygons": []
     },
-    "verification_conditions": [],
+    "verification_conditions": [
+      {
+        "type": "perpendicular",
+        "objects": [
+          [
+            "B",
+            "C"
+          ],
+          [
+            "D",
+            "E"
+          ]
+        ]
+      },
+      {
+        "type": "point_on_segment",
+        "point": "D",
+        "segment": [
+          "A",
+          "B"
+        ]
+      },
+      {
+        "type": "point_on_segment",
+        "point": "E",
+        "segment": [
+          "B",
+          "C"
+        ]
+      },
+      {
+        "type": "segment_equality",
+        "segments": [
+          [
+            "A",
+            "C"
+          ],
+          [
+            "D",
+            "C"
+          ]
+        ]
+      },
+      {
+        "type": "angle_value",
+        "points": [
+          [
+            "C",
+            "B",
+            "A"
+          ]
+        ],
+        "value": 25
+      }
+    ],
     "metadata": {
       "source": "GeoQA3",
       "formal_point": [

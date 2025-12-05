@@ -22,44 +22,10 @@ for i, cond in enumerate(problem.verification_conditions):
 # The DSL from iteration 2
 dsl_code = """# Place A at (0,0)
 point : 0 0 -> A
-# Place B at (200,0)
 point : 200 0 -> B
-# Place C at (47,265) to satisfy the triangle's angles (precomputed)
-point : 47 265 -> C
+rotate : B 60 A -> C
+polygon : A B C -> triangle_ABC c a b
 
-# Draw triangle
-polygon : A B C -> triangle c a b
-
-# Place D on AB (not at endpoints)
-point : 80 0 -> D
-
-# Draw BC
-line : B C -> line_BC
-
-# Draw AC
-line : A C -> line_AC
-
-# Construct a line through D parallel to BC
-# To do this, create a point E_dir by moving from D by the direction vector of BC
-# BC vector: (47-200, 265-0) = (-153, 265)
-point : -73 265 -> E_dir
-line : D E_dir -> line_DE_parallel
-
-# Intersect this line with AC to get E
-intersect : line_DE_parallel line_AC -> E
-
-# Draw DE
-segment : D E -> seg_DE
-
-# Draw CE
-segment : C E -> seg_CE
-
-# Construct angle CED (angle at E between C and D)
-angle : C E D -> angle_CED
-
-# End with prove statement
-equality : A A -> expr0
-prove : expr0 -> result
 """
 
 # Save to temp file
@@ -115,4 +81,12 @@ if result.details:
 # Cleanup
 import os
 os.remove(dsl_file)
+
+
+
+
+
+
+
+
 

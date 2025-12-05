@@ -1,0 +1,24 @@
+### ⚠️ Undefined Object Error
+
+You tried to use an object that hasn't been defined yet.
+
+**Rule**: Define objects BEFORE using them!
+
+**Example - WRONG:**
+```
+line : A B -> line_AB  # Error: A and B not defined yet!
+```
+
+**Example - CORRECT:**
+```
+point :  -> A          # Define A first
+point :  -> B          # Define B second
+line : A B -> line_AB  # Now you can use A and B
+```
+
+**Common mistakes:**
+- Using a point before defining it with `point :  -> X`
+- Using a circle/line before creating it
+- Typo in object name (case-sensitive!)
+
+

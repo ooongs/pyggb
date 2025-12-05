@@ -1,0 +1,6 @@
+[
+    {
+        "id": "0",
+        "ground_truth": "point : 0 0 -> A\n# Place B on the x-axis\npoint : 10 0 -> B\n# Place C such that ∠A=80°, ∠B=60°, ∠C=40°\n# Use law of sines to find C's coordinates\n# Let AB = 10, so:\n# AC / sin(60°) = 10 / sin(40°)\n# AC = 10 * sin(60°) / sin(40°)\nconst Measure 10 -> AB\nconst Measure 60 -> angle_B\nconst Measure 40 -> angle_C\nconst Measure 80 -> angle_A\n# Calculate AC\n# sin(60°) ≈ 0.8660, sin(40°) ≈ 0.6428\nconst Measure 0.8660 -> sin60\nconst Measure 0.6428 -> sin40\nproduct : AB sin60 -> num_AC\nratio : num_AC sin40 -> AC\n# Place C at (AC*cos(80°), AC*sin(80°))\nconst Measure 0.1736 -> cos80\nconst Measure 0.9848 -> sin80\nproduct : AC cos80 -> Cx\nproduct : AC sin80 -> Cy\npoint : Cx Cy -> C\n# Draw triangle\npolygon : A B C -> triangle c a b\n# Draw BC\nsegment : B C -> seg_BC\n# Place D on AB (choose a point between A and B)\npoint : 3 0 -> D\n# Draw line through D parallel to BC\nline : B C -> line_BC\nline : A C -> line_AC\nparallel_line : D line_BC -> line_DE\nintersect : line_DE line_AC -> E"
+    }
+]

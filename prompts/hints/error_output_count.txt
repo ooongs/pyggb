@@ -1,0 +1,29 @@
+### ⚠️ Output Count Mismatch Error
+
+The number of output labels doesn't match what the command produces.
+
+**Polygon outputs**: polygon + all sides (in reverse order)
+
+**Example - WRONG:**
+```
+polygon : A B C -> triangle  # Error: polygon outputs 4 things!
+```
+
+**Example - CORRECT (Triangle):**
+```
+polygon : A B C -> triangle side_c side_a side_b
+#                  ^^^^^^^^ ^^^^^^ ^^^^^^ ^^^^^^
+#                  polygon  side   side   side
+#                           BC     CA     AB
+```
+
+**Example - CORRECT (Quadrilateral):**
+```
+polygon : A B C D -> quad side_d side_c side_b side_a
+#                    ^^^^ ^^^^^^ ^^^^^^ ^^^^^^ ^^^^^^
+#                    poly DA     CD     BC     AB
+```
+
+**Rule**: For n-vertex polygon → n+1 outputs (polygon + n sides)
+
+

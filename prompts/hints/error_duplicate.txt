@@ -1,0 +1,29 @@
+### ⚠️ Duplicate Label Error
+
+You tried to define the same label twice.
+
+**Rule**: Each label can only be defined ONCE!
+
+**Example - WRONG:**
+```
+point :  -> A
+point : 100 100 -> A  # Error: A already exists!
+```
+
+**Example - CORRECT:**
+```
+point :  -> A
+point : 100 100 -> B  # Use different label
+```
+
+**If you need to "update" a point:**
+- You cannot! DSL doesn't support reassignment
+- Use a different label name instead
+- Plan your construction order carefully
+
+**Tip**: Use descriptive names to avoid conflicts:
+- `A`, `B`, `C` for main points
+- `M_AB` for midpoint of AB
+- `P1`, `P2` for auxiliary points
+
+

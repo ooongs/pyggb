@@ -2,16 +2,55 @@
 """
 Problem Parser for Geometry Benchmark
 Extracts geometric requirements from Chinese problem text using LLM.
+
+Features:
+1. Skips problems with ambiguous references (e.g., ∠1, ∠2) that require diagrams
+2. Cleans problem text by removing phrases like "如图所示", "如图" and question parts
+3. Classifies problems into geometric categories
+4. Rates diagram construction difficulty (1-5 scale)
+5. Batch processing for creating datasets from directories
+
+Usage:
+    # With LLM (recommended for full features)
+    from problem_parser import ProblemParser, create_openai_api_function
+    
+    llm_func = create_openai_api_function(model="gpt-4o-mini")
+    parser = ProblemParser(llm_api_function=llm_func)
+    
+    # Parse single problem
+    result = parser.parse_problem(problem_text, problem_id="1")
+    
+    # Batch process directory
+    parser.batch_parse_directory(
+        input_dir="data-5/GeoQA3/json",
+        output_file="dataset.json",
+        skip_ambiguous=True,
+        clean_text=True
+    )
 """
 
 import json
 import re
 import os
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 
 
 class ProblemParser:
     """Parse Chinese geometry problems to extract required objects and conditions."""
+    
+    # Problem classification categories
+    PROBLEM_CATEGORIES = [
+        "Basic Constructions",
+        "Circle Properties & Constructions",
+        "Geometric Transformations",
+        "Triangle Properties & Constructions",
+        "Applications of Geometric Theorems",
+        "Polygon Properties & Constructions",
+        "Measurement & Ratios",
+        "Locus Constructions",
+        "Angle Relationships",
+        "Similarity & Congruence"
+    ]
     
     def __init__(self, llm_api_function=None):
         """
@@ -22,22 +61,201 @@ class ProblemParser:
         """
         self.llm_api = llm_api_function
     
-    def parse_problem(self, problem_text: str, problem_id: str = None) -> Dict[str, Any]:
+    def has_ambiguous_references(self, problem_text: str) -> bool:
+        """
+        Check if problem has ambiguous references like ∠1, ∠2 that require diagram.
+        
+        Args:
+            problem_text: Problem text to check
+            
+        Returns:
+            True if problem has ambiguous references, False otherwise
+        """
+        # Pattern for numbered angles: ∠1, ∠2, etc.
+        ambiguous_patterns = [
+            r'∠\d+',  # ∠1, ∠2, etc.
+            r'∠[①②③④⑤⑥⑦⑧⑨⑩]',  # Circled numbers
+        ]
+        
+        for pattern in ambiguous_patterns:
+            if re.search(pattern, problem_text):
+                return True
+        
+        return False
+    
+    def clean_problem_text(self, problem_text: str) -> str:
+        """
+        Clean problem text by removing phrases that don't affect geometric construction.
+        Removes phrases like "如图所示", "如图", and questions asking for proofs or values.
+        
+        Args:
+            problem_text: Original problem text
+            
+        Returns:
+            Cleaned problem text
+        """
+        text = problem_text
+        
+        # Remove common diagram reference phrases
+        phrases_to_remove = [
+            r'如图所?示[,，、]?',  # 如图所示, 如图示
+            r'如图[,，、]?',  # 如图
+            r'图中[,，、]?',  # 图中
+            r'观察图[,，、]?',  # 观察图
+        ]
+        
+        for pattern in phrases_to_remove:
+            text = re.sub(pattern, '', text)
+        
+        # Remove question parts that ask for proof or value calculation
+        # These typically start with "则", "求", "计算", "证明" etc.
+        question_patterns = [
+            r'[,，、。]?则[^,，。]*[是为]?\s*\([^\)]*\)',  # 则∠AOB的大小是()
+            r'[,，、。]?求[^,，。]*[是为]?\s*\([^\)]*\)',  # 求...()
+            r'[,，、。]?计算[^,，。]*[是为]?\s*\([^\)]*\)',  # 计算...()
+            r'[,，、。]?证明[^,，。]*[是为]?\s*\([^\)]*\)',  # 证明...()
+            r'[,，、。]?判断[^,，。]*[是为]?\s*\([^\)]*\)',  # 判断...()
+            r'[,，、。]?下列[^,，。]*正确的[是为]?\s*\([^\)]*\)',  # 下列...正确的是()
+        ]
+        
+        for pattern in question_patterns:
+            text = re.sub(pattern, '', text)
+        
+        # Remove trailing question patterns without parentheses
+        text = re.sub(r'[,，、。]?则.*[?？]?$', '', text)
+        text = re.sub(r'[,，、。]?求.*[?？]?$', '', text)
+        
+        # Clean up extra spaces and punctuation
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'^[,，、。\s]+', '', text)
+        text = re.sub(r'[,，、。\s]+$', '', text)
+        
+        return text.strip()
+    
+    def classify_problem(self, problem_text: str) -> str:
+        """
+        Classify the geometric problem into a category using LLM.
+        
+        Args:
+            problem_text: Problem text to classify
+            
+        Returns:
+            Problem category
+        """
+        if not self.llm_api:
+            return "Unknown"
+        
+        categories_str = "\n".join([f"{i+1}. {cat}" for i, cat in enumerate(self.PROBLEM_CATEGORIES)])
+        
+        prompt = f"""Classify the following Chinese geometry problem into ONE of these categories:
+
+{categories_str}
+
+Problem: {problem_text}
+
+Return ONLY the category name, nothing else."""
+        
+        try:
+            response = self.llm_api(prompt).strip()
+            
+            # Try to match response to one of the categories
+            for category in self.PROBLEM_CATEGORIES:
+                if category.lower() in response.lower():
+                    return category
+            
+            # If no exact match, return the response or "Unknown"
+            return response if response else "Unknown"
+        except Exception as e:
+            print(f"Classification failed: {e}")
+            return "Unknown"
+    
+    def rate_difficulty(self, problem_text: str) -> int:
+        """
+        Rate the geometric diagram difficulty from 1 (easiest) to 5 (hardest) using LLM.
+        
+        Args:
+            problem_text: Problem text to rate
+            
+        Returns:
+            Difficulty rating (1-5)
+        """
+        if not self.llm_api:
+            return 3  # Default medium difficulty
+        
+        prompt = f"""Rate the difficulty of constructing the geometric diagram for this Chinese geometry problem on a scale of 1-5:
+
+1 = Very Easy (basic shapes, few objects, simple relationships)
+2 = Easy (simple constructions, clear relationships)
+3 = Medium (moderate complexity, multiple objects)
+4 = Hard (complex constructions, many relationships, requires careful planning)
+5 = Very Hard (very complex, many objects, intricate relationships)
+
+Consider factors like:
+- Number of geometric objects (points, lines, circles, polygons)
+- Complexity of relationships (parallel, perpendicular, angles, etc.)
+- Number of constraints and conditions
+- Whether special constructions are needed (bisectors, perpendiculars, etc.)
+
+Problem: {problem_text}
+
+Return ONLY a single number from 1 to 5, nothing else."""
+        
+        try:
+            response = self.llm_api(prompt).strip()
+            
+            # Extract first digit from response
+            match = re.search(r'[1-5]', response)
+            if match:
+                return int(match.group())
+            
+            return 3  # Default medium difficulty
+        except Exception as e:
+            print(f"Difficulty rating failed: {e}")
+            return 3
+    
+    def parse_problem(self, problem_text: str, problem_id: str = None, 
+                     skip_ambiguous: bool = True, clean_text: bool = True) -> Optional[Dict[str, Any]]:
         """
         Parse a geometry problem and extract requirements.
         
         Args:
             problem_text: Chinese text describing the geometry problem
             problem_id: Optional problem identifier
+            skip_ambiguous: If True, skip problems with ambiguous references like ∠1
+            clean_text: If True, clean the problem text before parsing
             
         Returns:
-            Dictionary with required_objects and verification_conditions
+            Dictionary with required_objects and verification_conditions, or None if skipped
         """
+        # Check for ambiguous references
+        if skip_ambiguous and self.has_ambiguous_references(problem_text):
+            print(f"Skipping problem {problem_id}: contains ambiguous references (e.g., ∠1, ∠2)")
+            return None
+        
+        # Clean the problem text
+        original_text = problem_text
+        if clean_text:
+            problem_text = self.clean_problem_text(problem_text)
+            if not problem_text:  # If cleaning removed everything
+                print(f"Skipping problem {problem_id}: no constructible content after cleaning")
+                return None
+        
         if self.llm_api:
-            return self._parse_with_llm(problem_text, problem_id)
+            result = self._parse_with_llm(problem_text, problem_id)
         else:
             # Fallback to rule-based parsing
-            return self._parse_rule_based(problem_text, problem_id)
+            result = self._parse_rule_based(problem_text, problem_id)
+        
+        # Add original and cleaned text
+        result["original_text"] = original_text
+        result["cleaned_text"] = problem_text
+        
+        # Add classification and difficulty rating
+        if self.llm_api:
+            result["category"] = self.classify_problem(problem_text)
+            result["difficulty"] = self.rate_difficulty(problem_text)
+        
+        return result
     
     def _parse_with_llm(self, problem_text: str, problem_id: str = None) -> Dict[str, Any]:
         """Use LLM API to parse problem text."""
@@ -544,15 +762,18 @@ Only return the JSON object, no other text or markdown formatting.
 """
         return prompt
     
-    def parse_from_json(self, json_file: str) -> Dict[str, Any]:
+    def parse_from_json(self, json_file: str, skip_ambiguous: bool = True, 
+                       clean_text: bool = True) -> Optional[Dict[str, Any]]:
         """
         Parse problem from JSON file (like GeoQA3 format).
         
         Args:
             json_file: Path to JSON file
+            skip_ambiguous: If True, skip problems with ambiguous references
+            clean_text: If True, clean the problem text before parsing
             
         Returns:
-            Parsed problem data
+            Parsed problem data, or None if skipped
         """
         with open(json_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -560,12 +781,101 @@ Only return the JSON object, no other text or markdown formatting.
         problem_text = data.get('subject', '')
         problem_id = str(data.get('id', 'unknown'))
         
-        return self.parse_problem(problem_text, problem_id)
+        return self.parse_problem(problem_text, problem_id, skip_ambiguous, clean_text)
     
     def save_to_benchmark_format(self, parsed_data: Dict[str, Any], output_file: str):
         """Save parsed data to benchmark format JSON file."""
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(parsed_data, f, ensure_ascii=False, indent=2)
+    
+    def batch_parse_directory(self, input_dir: str, output_file: str, 
+                             skip_ambiguous: bool = True, clean_text: bool = True,
+                             file_pattern: str = "*.json") -> Dict[str, Any]:
+        """
+        Batch parse all JSON files in a directory and save to dataset.
+        
+        Args:
+            input_dir: Directory containing JSON problem files
+            output_file: Output file path for the dataset
+            skip_ambiguous: If True, skip problems with ambiguous references
+            clean_text: If True, clean the problem text before parsing
+            file_pattern: Glob pattern for JSON files (default: "*.json")
+            
+        Returns:
+            Dictionary with statistics about the parsing process
+        """
+        import glob
+        
+        json_files = glob.glob(os.path.join(input_dir, file_pattern))
+        
+        parsed_problems = []
+        skipped_count = 0
+        error_count = 0
+        
+        print(f"Found {len(json_files)} files to process in {input_dir}")
+        print(f"Skip ambiguous: {skip_ambiguous}, Clean text: {clean_text}\n")
+        
+        for json_file in sorted(json_files):
+            try:
+                result = self.parse_from_json(json_file, skip_ambiguous, clean_text)
+                
+                if result is None:
+                    skipped_count += 1
+                else:
+                    parsed_problems.append(result)
+                    print(f"✓ Parsed: {json_file} (ID: {result.get('id', 'unknown')})")
+                    if 'category' in result:
+                        print(f"  Category: {result['category']}, Difficulty: {result.get('difficulty', 'N/A')}")
+                
+            except Exception as e:
+                error_count += 1
+                print(f"✗ Error parsing {json_file}: {e}")
+        
+        # Save the dataset
+        dataset = {
+            "metadata": {
+                "total_files": len(json_files),
+                "parsed": len(parsed_problems),
+                "skipped": skipped_count,
+                "errors": error_count,
+                "skip_ambiguous": skip_ambiguous,
+                "clean_text": clean_text
+            },
+            "problems": parsed_problems
+        }
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(dataset, f, ensure_ascii=False, indent=2)
+        
+        print(f"\n{'='*60}")
+        print(f"Dataset saved to: {output_file}")
+        print(f"Total files: {len(json_files)}")
+        print(f"Successfully parsed: {len(parsed_problems)}")
+        print(f"Skipped: {skipped_count}")
+        print(f"Errors: {error_count}")
+        print('='*60)
+        
+        # Print category distribution if available
+        if parsed_problems and 'category' in parsed_problems[0]:
+            categories = {}
+            difficulties = {}
+            
+            for problem in parsed_problems:
+                cat = problem.get('category', 'Unknown')
+                diff = problem.get('difficulty', 0)
+                
+                categories[cat] = categories.get(cat, 0) + 1
+                difficulties[diff] = difficulties.get(diff, 0) + 1
+            
+            print("\nCategory Distribution:")
+            for cat, count in sorted(categories.items(), key=lambda x: x[1], reverse=True):
+                print(f"  {cat}: {count}")
+            
+            print("\nDifficulty Distribution:")
+            for diff, count in sorted(difficulties.items()):
+                print(f"  Level {diff}: {count}")
+        
+        return dataset["metadata"]
 
 
 def create_openai_api_function(model: str = "gpt-4o-mini", api_key: str = None):
@@ -621,20 +931,37 @@ if __name__ == "__main__":
     # Option 1: Rule-based parsing (default)
     parser = ProblemParser()
     
-    # Option 2: With OpenAI LLM (uncomment to use)
-    # api_key = os.getenv("OPENAI_API_KEY")
-    # if api_key:
-    #     llm_function = create_openai_api_function(model="gpt-4o-mini", api_key=api_key)
-    #     parser = ProblemParser(llm_api_function=llm_function)
-    #     print("Using OpenAI API for parsing")
-    # else:
-    #     print("OPENAI_API_KEY not found, using rule-based parsing")
+    # Option 2: With OpenAI LLM (recommended for classification and difficulty rating)
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        llm_function = create_openai_api_function(model="gpt-4o-mini", api_key=api_key)
+        parser = ProblemParser(llm_api_function=llm_function)
+        print("Using OpenAI API for parsing, classification, and difficulty rating\n")
+    else:
+        print("OPENAI_API_KEY not found, using rule-based parsing only\n")
     
-    # Test with the example problem text
-    problem_text = "如图,AB∥CD,直线EF交AB于点E,交CD于点F,EG平分∠BEF,交CD于点G,∠EFG=50°,则∠EGF等于()"
+    # Test with example problems
+    test_problems = [
+        ("如图,AB∥CD,直线EF交AB于点E,交CD于点F,EG平分∠BEF,交CD于点G,∠EFG=50°,则∠EGF等于()", "test1"),
+        ("如图所示,∠1=30°,∠2=45°,求∠3的大小", "test2"),  # Should be skipped (ambiguous ∠1, ∠2)
+        ("在三角形ABC中,AB=BC,∠ABC=90°", "test3"),
+    ]
     
-    result = parser.parse_problem(problem_text, problem_id="1")
-    
-    print("Parsed Problem:")
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    for problem_text, problem_id in test_problems:
+        print(f"\n{'='*60}")
+        print(f"Problem {problem_id}: {problem_text}")
+        print('='*60)
+        
+        result = parser.parse_problem(
+            problem_text, 
+            problem_id=problem_id,
+            skip_ambiguous=True,  # Skip problems with ∠1, ∠2, etc.
+            clean_text=True  # Remove "如图所示" and question parts
+        )
+        
+        if result is None:
+            print("⚠️  Problem skipped (ambiguous references or no constructible content)")
+        else:
+            print("\n✓ Parsed Problem:")
+            print(json.dumps(result, ensure_ascii=False, indent=2))
 

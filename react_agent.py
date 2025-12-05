@@ -6,13 +6,116 @@ Uses ReAct (Reasoning and Acting) pattern with multimodal observations.
 
 import os
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from benchmark_dataset import BenchmarkProblem
 from dsl_executor import DSLExecutor, DSLExecutionResult
 from multimodal_interface import MultimodalInterface, MultimodalMessage
 from agent_memory import AgentMemory, Thought, Action, Observation
 from dsl_validator import DSLValidator
 from agent_logger import AgentLogger
+
+
+class ErrorHintManager:
+    """Manages error-specific hints for DSL execution failures."""
+    
+    # Error patterns mapped to hint file names
+    ERROR_PATTERNS = {
+        'undefined': [
+            r'not defined',
+            r'undefined',
+            r'not found',
+            r'unknown (object|variable|label)',
+            r'does not exist',
+        ],
+        'output_count': [
+            r'output.*mismatch',
+            r'expected \d+ outputs?',
+            r'wrong number of (outputs?|arguments?)',
+            r'polygon.*outputs?',
+        ],
+        'syntax': [
+            r'syntax error',
+            r'missing.*:',
+            r'missing.*->',
+            r'invalid syntax',
+            r'parse error',
+        ],
+        'invalid_command': [
+            r'invalid command',
+            r'unknown command',
+            r'no such command',
+            r'command.*not (found|recognized)',
+        ],
+        'type': [
+            r'type (error|mismatch)',
+            r'expected.*got',
+            r'incompatible type',
+            r'wrong type',
+        ],
+        'duplicate': [
+            r'duplicate',
+            r'already (defined|exists)',
+            r'redefined',
+            r'label.*exists',
+        ],
+        'constraint': [
+            r'cannot assert',
+            r'equality.*angle',
+            r'parallel.*assert',
+            r'constraint',
+        ],
+    }
+    
+    def __init__(self, hints_dir: str = "prompts/hints"):
+        """Initialize with hints directory path."""
+        self.hints_dir = hints_dir
+        self._hints_cache: Dict[str, str] = {}
+    
+    def _load_hint(self, hint_name: str) -> str:
+        """Load a hint file, with caching."""
+        if hint_name in self._hints_cache:
+            return self._hints_cache[hint_name]
+        
+        hint_path = os.path.join(self.hints_dir, f"error_{hint_name}.txt")
+        if os.path.exists(hint_path):
+            with open(hint_path, 'r', encoding='utf-8') as f:
+                hint = f.read()
+                self._hints_cache[hint_name] = hint
+                return hint
+        return ""
+    
+    def get_hints_for_error(self, error_message: str) -> str:
+        """
+        Analyze error message and return relevant hints.
+        
+        Args:
+            error_message: The DSL execution error message
+            
+        Returns:
+            Concatenated relevant hints, or empty string if no matches
+        """
+        if not error_message:
+            return ""
+        
+        error_lower = error_message.lower()
+        matched_hints = []
+        
+        for hint_name, patterns in self.ERROR_PATTERNS.items():
+            for pattern in patterns:
+                if re.search(pattern, error_lower, re.IGNORECASE):
+                    hint = self._load_hint(hint_name)
+                    if hint and hint not in matched_hints:
+                        matched_hints.append(hint)
+                    break  # Only add each hint once
+        
+        if matched_hints:
+            return "\n\n---\n\n## 💡 Helpful Hints for Your Error:\n\n" + "\n\n---\n\n".join(matched_hints)
+        
+        return ""
+    
+    def get_all_hint_names(self) -> List[str]:
+        """Return list of available hint names."""
+        return list(self.ERROR_PATTERNS.keys())
 
 
 class ReActAgent:
@@ -43,11 +146,11 @@ class ReActAgent:
         self.executor = DSLExecutor(save_images=save_images, image_dir=image_dir)
         self.validator = DSLValidator()
         self.logger = AgentLogger(log_dir=log_dir, save_images=save_images)
+        self.hint_manager = ErrorHintManager()
         
         # Load prompts
         self.system_prompt = self._load_prompt("system_prompt.txt")
         self.react_template = self._load_prompt("react_template.txt")
-        self.dsl_guidelines = self._load_prompt("dsl_guidelines.txt")
     
     def _load_prompt(self, filename: str) -> str:
         """Load prompt from file."""
@@ -270,7 +373,7 @@ class ReActAgent:
         
         # Get recent images (last 2-3 iterations)
         recent_images = []
-        max_images = 3
+        max_images = 1
         for step in reversed(memory.steps[-max_images:]):
             if step.observation.has_image and step.observation.image_base64:
                 recent_images.append({
@@ -377,9 +480,14 @@ class ReActAgent:
             else:
                 history_parts.append("- Execution failed")
             
-            # Full error message if present
+            # Full error message if present, with dynamic hints
             if step.observation.error:
                 history_parts.append(f"\n**Error Details:**\n```\n{step.observation.error}\n```")
+                
+                # Add relevant hints for the error (only for execution failures)
+                error_hints = self.hint_manager.get_hints_for_error(step.observation.error)
+                if error_hints:
+                    history_parts.append(error_hints)
             
             # Validation results if present
             if step.observation.validation_result:
@@ -516,7 +624,7 @@ class ReActAgent:
         
         try:
             validation = self.validator.validate(dsl_file, problem)
-            
+            print(validation)
             # Extract detailed messages from validation details
             failed_conditions_with_messages = []
             if validation.details and 'condition_details' in validation.details:

@@ -85,7 +85,10 @@ intersect : line circle -> P     # Line-circle (may return 2 points)
 
 ### 10. Perpendicular/Parallel
 ```
-orthogonal_line : P line -> perp # Perpendicular through P
+orthogonal_line : P line -> perp    # Perpendicular line through P
+parallel_line : P line -> para      # Parallel line through P
+parallel_line : P segment -> para   # Parallel to segment through P
+parallel_line : P ray -> para       # Parallel to ray through P
 ```
 
 ### 11. Midpoints
@@ -142,8 +145,8 @@ prove : expr0 -> result          # Optional prove statement
 - ❌ Directly enforce constraints
 
 **How to handle constraints:**
-- If problem says "angle A = 80°", construct the geometry to naturally have that angle
-- If problem says "AB∥CD", construct parallel lines using geometric construction
+- If problem says "angle A = 80°", construct the geometry to naturally have that angle (use `rotate` command)
+- If problem says "AB∥CD", construct parallel lines using `parallel_line` command
 - If problem says "AB⊥CD", use `orthogonal_line` command to construct perpendicular
 
 ## Validation-Friendly Patterns
@@ -184,20 +187,30 @@ intersect : line_AB other_line -> D
 If problem says "DE∥BC":
 
 ```
-# Method 1: Use same direction vector
+# Method 1: Use parallel_line command (RECOMMENDED)
 point :  -> B
 point :  -> C
 line : B C -> line_BC
-
-# Calculate direction and create parallel line through D
-# (complex - see method 2)
-
-# Method 2: Use rotation
 point :  -> D
-point :  -> E
-line : D E -> line_DE
-# Note: Constructing truly parallel lines requires careful planning!
-# Often easier to use intersection of constructed parallel
+parallel_line : D line_BC -> line_DE
+# Now line_DE passes through D and is parallel to BC
+
+# Method 2: Create second point E on the parallel line
+point :  -> B
+point :  -> C
+segment : B C -> seg_BC
+point :  -> D
+parallel_line : D seg_BC -> line_DE
+point : line_DE -> E
+# Now line DE is parallel to BC
+
+# Method 3: Use rotation (for equal-length parallel segments)
+point :  -> B
+point :  -> C
+vector : B C -> vec_BC
+point :  -> D
+translate : D vec_BC -> E
+# Now DE is parallel to BC and has same length
 ```
 
 ### Pattern 4: Creating Triangles
@@ -241,14 +254,20 @@ Before finalizing your DSL, check:
 
 ### Creating Parallel Lines:
 ```
+# Method 1: Using parallel_line command (RECOMMENDED)
 point :  -> A
 point :  -> B
 line : A B -> line_AB
-
 point :  -> C
-point :  -> D
-line : C D -> line_CD
-# Note: lines won't be parallel unless you construct them to be
+parallel_line : C line_AB -> line_CD
+# line_CD passes through C and is parallel to line_AB
+
+# Method 2: With segments
+point :  -> A
+point :  -> B
+segment : A B -> seg_AB
+point :  -> C
+parallel_line : C seg_AB -> line_CD
 ```
 
 ### Creating Perpendicular Lines:

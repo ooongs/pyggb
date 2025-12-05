@@ -20,13 +20,13 @@ point :  -> C
 polygon : A B C -> triangle c a b
 line : B C -> line_BC
 point :  -> D
-point :  -> E
-line : D E -> line_DE
+parallel_line : D line_BC -> line_DE
+point : line_DE -> E
 equality : A A -> expr0
 prove : expr0 -> result
 ```
 
-Note: The actual parallelism would need to be constructed geometrically, not asserted.
+Note: Using `parallel_line` command ensures the line through D is parallel to BC.
 
 ## Example 3: Perpendicular Lines
 ```

@@ -200,17 +200,17 @@
         ]
       },
       {
-        "type": "point_on_segment",
+        "type": "point_on_line",
         "point": "E",
-        "segment": [
+        "line": [
           "A",
           "B"
         ]
       },
       {
-        "type": "point_on_segment",
+        "type": "point_on_line",
         "point": "F",
-        "segment": [
+        "line": [
           "C",
           "D"
         ]
@@ -228,9 +228,9 @@
         ]
       },
       {
-        "type": "point_on_segment",
+        "type": "point_on_line",
         "point": "G",
-        "segment": [
+        "line": [
           "C",
           "D"
         ]
@@ -371,44 +371,6 @@
     }
   },
   {
-    "id": "1000",
-    "subject": "如图,∠1=35°,则∠2的度数为()",
-    "required_objects": {
-      "points": [],
-      "segments": [],
-      "lines": [],
-      "circles": [],
-      "polygons": []
-    },
-    "verification_conditions": [
-      {
-        "type": "angle_value",
-        "points": [
-          [
-            "",
-            "1",
-            ""
-          ]
-        ],
-        "value": 35
-      }
-    ],
-    "metadata": {
-      "source": "GeoQA3",
-      "formal_point": [
-        "邻补角"
-      ],
-      "choices": [
-        "55°",
-        "135°",
-        "145°",
-        "155°"
-      ],
-      "correct_label": 2,
-      "comment": "本题考查了邻补角的性质,掌握邻补角之和等于180°是解答本题的关键,"
-    }
-  },
-  {
     "id": "1001",
     "subject": "如图,四边形ABCD内接于⊙O,如果它的一个外角∠DCE=62°,那么∠BOD=()",
     "required_objects": {
@@ -436,16 +398,24 @@
         [
           "D",
           "A"
-        ],
-        [
-          "C",
-          "E"
         ]
       ],
       "lines": [
         [
+          "D",
+          "C"
+        ],
+        [
           "C",
           "E"
+        ],
+        [
+          "B",
+          "O"
+        ],
+        [
+          "O",
+          "D"
         ]
       ],
       "circles": [
@@ -465,32 +435,12 @@
     },
     "verification_conditions": [
       {
-        "type": "point_on_circle",
-        "point": "A",
-        "circle_center": "O"
-      },
-      {
-        "type": "point_on_circle",
-        "point": "B",
-        "circle_center": "O"
-      },
-      {
-        "type": "point_on_circle",
-        "point": "C",
-        "circle_center": "O"
-      },
-      {
-        "type": "point_on_circle",
-        "point": "D",
-        "circle_center": "O"
-      },
-      {
         "type": "angle_value",
         "points": [
           [
-            "D",
+            "E",
             "C",
-            "E"
+            "D"
           ]
         ],
         "value": 62
@@ -533,20 +483,7 @@
         "C",
         "O"
       ],
-      "segments": [
-        [
-          "A",
-          "B"
-        ],
-        [
-          "B",
-          "C"
-        ],
-        [
-          "C",
-          "A"
-        ]
-      ],
+      "segments": [],
       "lines": [
         [
           "A",
@@ -554,14 +491,6 @@
         ],
         [
           "O",
-          "B"
-        ],
-        [
-          "A",
-          "C"
-        ],
-        [
-          "C",
           "B"
         ]
       ],
@@ -599,14 +528,6 @@
           ]
         ],
         "value": 80
-      },
-      {
-        "type": "triangle_valid",
-        "points": [
-          "A",
-          "C",
-          "B"
-        ]
       }
     ],
     "metadata": {
@@ -634,7 +555,6 @@
         "B",
         "C",
         "D",
-        "E",
         "O"
       ],
       "segments": [],
@@ -672,9 +592,9 @@
         "type": "angle_value",
         "points": [
           [
-            "C",
+            "A",
             "B",
-            "A"
+            "C"
           ]
         ],
         "value": 100
@@ -697,106 +617,13 @@
     }
   },
   {
-    "id": "1004",
-    "subject": "如图,∠2+∠3+∠4=320°,则∠1=()",
-    "required_objects": {
-      "points": [
-        "1",
-        "2",
-        "3",
-        "4"
-      ],
-      "segments": [],
-      "lines": [],
-      "circles": [],
-      "polygons": []
-    },
-    "verification_conditions": [
-      {
-        "type": "angle_value",
-        "points": [
-          [
-            "2"
-          ],
-          [
-            "vertex_unknown"
-          ],
-          [
-            "3"
-          ]
-        ],
-        "value": null
-      },
-      {
-        "type": "angle_value",
-        "points": [
-          [
-            "3"
-          ],
-          [
-            "vertex_unknown"
-          ],
-          [
-            "4"
-          ]
-        ],
-        "value": null
-      },
-      {
-        "type": "angle_value",
-        "points": [
-          [
-            "2"
-          ],
-          [
-            "vertex_unknown"
-          ],
-          [
-            "4"
-          ]
-        ],
-        "value": null
-      },
-      {
-        "type": "angle_value",
-        "points": [
-          [
-            "vertex_unknown"
-          ],
-          [
-            "vertex_unknown"
-          ],
-          [
-            "vertex_unknown"
-          ]
-        ],
-        "value": 320
-      }
-    ],
-    "metadata": {
-      "source": "GeoQA3",
-      "formal_point": [
-        "多边形"
-      ],
-      "choices": [
-        "60度",
-        "40度",
-        "50度",
-        "75度"
-      ],
-      "correct_label": 1,
-      "comment": "本题考查了多边形的内角和外角,熟记多边形的外角和等于360°是解题的关键."
-    }
-  },
-  {
     "id": "1005",
     "subject": "如图,一副三角板(直角顶点重合)摆放在桌面上,若∠AOC=130°,则∠BOD等于()",
     "required_objects": {
       "points": [
         "A",
-        "B",
-        "C",
-        "O"
+        "O",
+        "C"
       ],
       "segments": [],
       "lines": [],
@@ -858,6 +685,10 @@
         [
           "A",
           "C"
+        ],
+        [
+          "D",
+          "C"
         ]
       ],
       "lines": [
@@ -916,20 +747,12 @@
         "type": "angle_value",
         "points": [
           [
-            "C",
+            "A",
             "B",
-            "A"
+            "C"
           ]
         ],
         "value": 25
-      },
-      {
-        "type": "triangle_valid",
-        "points": [
-          "A",
-          "B",
-          "C"
-        ]
       }
     ],
     "metadata": {

@@ -1,0 +1,43 @@
+### ⚠️ Syntax Error
+
+Your DSL line has incorrect syntax.
+
+**Correct format**: `command : inputs -> outputs`
+
+**Common syntax errors:**
+
+1. **Missing colon (:)**
+```
+# WRONG:
+point  -> A
+# CORRECT:
+point :  -> A
+```
+
+2. **Missing arrow (->)**
+```
+# WRONG:
+point : 100 100 A
+# CORRECT:
+point : 100 100 -> A
+```
+
+3. **Multiple arrows**
+```
+# WRONG:
+point : 100 -> 100 -> A
+# CORRECT:
+point : 100 100 -> A
+```
+
+4. **Wrong spacing**
+```
+# WRONG:
+point:->A
+# CORRECT:
+point :  -> A
+```
+
+**Tip**: Each line should have exactly ONE `:` and ONE `->`
+
+
