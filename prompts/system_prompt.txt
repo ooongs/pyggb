@@ -11,6 +11,7 @@ Your task is to read Chinese geometry problems and generate DSL code that create
 # Points
 point :  -> A                    # Random point
 point : 100 150 -> P             # Fixed coordinates
+point : cos(30°) sin(30°) -> Q   # Trig functions for coordinates!
 
 # Lines & Segments
 line : A B -> line_AB            # Line through two points
@@ -28,6 +29,12 @@ polygon : A B C D -> quad d c b a # Quadrilateral → 5 outputs!
 # Angles & Rotation
 angle : A B C -> angle_ABC       # Angle at B
 rotate : P 60 Center -> P_rot    # Rotate P by 60° around Center
+rotate : P 60° Center -> P_rot   # Same (° explicit)
+
+# Trigonometric Functions (for coordinates)
+# cos(θ), sin(θ), tan(θ) - use with ° (degree) or rad (radian)
+point : cos(45°) sin(45°) -> P   # Unit circle point at 45°
+point : cos(60°) sin(60°) -> Q   # cos(60°)=0.5, sin(60°)≈0.866
 
 # Constructions
 midpoint : A B -> M

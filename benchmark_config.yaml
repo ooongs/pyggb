@@ -1,0 +1,122 @@
+# Benchmark Configuration File
+# Configure models and settings for multi-model benchmark testing
+
+# Default settings
+defaults:
+  dataset: "benchmark_geoqa3.json"
+  max_iterations: 5
+  save_images: true
+  verbose: false
+
+# Model configurations
+models:
+  # OpenAI Models
+  - name: "gpt-4o"
+    provider: "openai"
+    enabled: true
+    
+  - name: "gpt-4o-mini"
+    provider: "openai"
+    enabled: true
+    
+  # Anthropic Models
+  - name: "claude-3-5-sonnet-20241022"
+    provider: "anthropic"
+    enabled: false
+    
+  # vLLM Models (Vision-Language Models)
+  - name: "Qwen/Qwen2.5-VL-7B-Instruct"
+    provider: "vllm"
+    api_base: "http://localhost:8000/v1"
+    enabled: false
+    
+  - name: "Qwen/Qwen2.5-VL-72B-Instruct"
+    provider: "vllm"
+    api_base: "http://localhost:8000/v1"
+    enabled: false
+    
+  - name: "meta-llama/Llama-3.2-11B-Vision-Instruct"
+    provider: "vllm"
+    api_base: "http://localhost:8000/v1"
+    enabled: false
+    
+  - name: "meta-llama/Llama-3.2-90B-Vision-Instruct"
+    provider: "vllm"
+    api_base: "http://localhost:8000/v1"
+    enabled: false
+    
+  - name: "microsoft/Phi-3.5-vision-instruct"
+    provider: "vllm"
+    api_base: "http://localhost:8000/v1"
+    enabled: false
+    
+  - name: "OpenGVLab/InternVL2-8B"
+    provider: "vllm"
+    api_base: "http://localhost:8000/v1"
+    enabled: false
+
+# Metrics to track
+metrics:
+  # 1. Success Rate
+  success_rate:
+    enabled: true
+    description: "Percentage of problems solved successfully"
+    
+  # 2. Step Analysis
+  step_analysis:
+    enabled: true
+    description: "Average steps to success, step distribution"
+    
+  # 3. Hallucination Analysis (DSL Errors)
+  hallucination_analysis:
+    enabled: true
+    description: "DSL execution errors - syntax errors, undefined references, etc."
+    categories:
+      - undefined_reference
+      - syntax_error
+      - type_error
+      - invalid_command
+      - duplicate_error
+      - constraint_error
+      - output_mismatch
+      - other_error
+    
+  # 4. Object Accuracy
+  object_accuracy:
+    enabled: true
+    description: "Missing geometric objects - points, segments, lines, etc."
+    categories:
+      - points
+      - segments
+      - lines
+      - circles
+      - polygons
+    
+  # 5. Condition Accuracy
+  condition_accuracy:
+    enabled: true
+    description: "Failed verification conditions"
+    categories:
+      - parallel
+      - perpendicular
+      - angle_value
+      - angle_equality
+      - segment_equality
+      - collinear
+      - not_collinear
+      - midpoint_of
+      - point_on_segment
+      - angle_bisector
+
+# Output settings
+output:
+  directory: "benchmark_results"
+  formats:
+    - json
+    - csv
+    - text
+  include_per_problem_analysis: true
+  include_rankings: true
+
+
+

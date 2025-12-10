@@ -114,6 +114,54 @@ rotate : P 1.5708rad Center -> S # 1.5708 radians (explicit radian)
 rotate : P 90 Center -> T        # 90 degrees (default = degree)
 ```
 
+### 12.1 Trigonometric Functions (NEW!)
+```
+# Use cos(), sin(), tan() with degree or radian values as inline literals
+# Default is degree (like angle notation)
+
+# Degree notation (° or deg):
+point : cos(30°) sin(30°) -> A     # Point at (cos(30°), sin(30°)) ≈ (0.866, 0.5)
+point : cos(60°) sin(60°) -> B     # Point at (cos(60°), sin(60°)) ≈ (0.5, 0.866)
+point : cos(45deg) sin(45deg) -> C # Same as cos(45°) sin(45°)
+
+# Radian notation (rad or r):
+point : cos(1.5708rad) sin(1.5708rad) -> D  # cos(π/2), sin(π/2) ≈ (0, 1)
+point : cos(0.5236r) sin(0.5236r) -> E      # cos(30° in rad), sin(30° in rad)
+
+# Default (no unit = degree):
+point : cos(30) sin(30) -> F       # Same as cos(30°) sin(30°)
+
+# Scale with multiplication:
+# To create point at distance r from origin with angle θ:
+# x = r * cos(θ), y = r * sin(θ)
+# Use arithmetic commands:
+const Measure 100 -> r
+const Measure 0.866 -> cos30       # cos(30°) ≈ 0.866
+const Measure 0.5 -> sin30         # sin(30°) ≈ 0.5
+product : r cos30 -> x
+product : r sin30 -> y
+point : x y -> P                   # Point at distance 100, angle 30°
+
+# OR more directly (inline trig):
+point : 0 0 -> Origin
+point : cos(30°) sin(30°) -> UnitP  # Unit circle point
+# Then scale...
+```
+
+**Common Trigonometric Values (for reference):**
+| Angle | cos | sin | tan |
+|-------|-----|-----|-----|
+| 0°    | 1   | 0   | 0   |
+| 30°   | √3/2 ≈ 0.866 | 1/2 = 0.5 | 1/√3 ≈ 0.577 |
+| 45°   | √2/2 ≈ 0.707 | √2/2 ≈ 0.707 | 1 |
+| 60°   | 1/2 = 0.5 | √3/2 ≈ 0.866 | √3 ≈ 1.732 |
+| 90°   | 0   | 1   | undefined |
+
+**Use cases:**
+- Creating points on unit circle
+- Calculating coordinates with angles
+- Positioning points at specific angles from origin
+
 ### 13. Arithmetic
 ```
 sum : a b -> c                   # Addition

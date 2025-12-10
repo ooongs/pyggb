@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Multimodal Interface for Vision LLMs
-Supports GPT-4V, GPT-4o, and Claude 3.5 Sonnet with vision.
+Supports GPT-4V, GPT-4o, Claude 3.5 Sonnet, and vLLM models with vision.
 """
 
 import os
@@ -34,41 +34,59 @@ class MultimodalMessage:
 class MultimodalInterface:
     """Interface for vision-enabled LLMs."""
     
-    def __init__(self, model: str = "gpt-4o", api_key: Optional[str] = None):
+    def __init__(self, model: str = "gpt-4o", api_key: Optional[str] = None,
+                 api_base: Optional[str] = None):
         """
         Initialize multimodal interface.
         
         Args:
-            model: Model name (gpt-4o, gpt-4-vision-preview, claude-3-5-sonnet-20241022)
+            model: Model name (gpt-4o, gpt-4-vision-preview, claude-3-5-sonnet-20241022, 
+                              or vLLM model name like Qwen/Qwen2.5-VL-7B-Instruct)
             api_key: API key (if None, loads from environment)
+            api_base: API base URL for vLLM or custom endpoints
         """
         self.model = model
         self.api_key = api_key
+        self.api_base = api_base or os.getenv("OPENAI_API_BASE")
         
         # Determine provider
-        if "gpt" in model.lower():
-            self.provider = "openai"
-            if api_key is None:
-                self.api_key = os.getenv("OPENAI_API_KEY")
-        elif "claude" in model.lower():
+        if "claude" in model.lower() or "anthropic" in model.lower():
             self.provider = "anthropic"
             if api_key is None:
                 self.api_key = os.getenv("ANTHROPIC_API_KEY")
         else:
-            raise ValueError(f"Unsupported model: {model}")
+            # Default to OpenAI-compatible API (works for GPT and vLLM)
+            self.provider = "openai"
+            if api_key is None:
+                self.api_key = os.getenv("OPENAI_API_KEY")
+            
+            # Check if this is a vLLM model (typically has / in name)
+            if "/" in model and self.api_base:
+                self.provider = "vllm"
         
         if not self.api_key:
-            raise ValueError(f"API key not found for {self.provider}")
+            # For vLLM, API key might be optional
+            if self.provider != "vllm":
+                raise ValueError(f"API key not found for {self.provider}")
+            else:
+                # Use dummy key for vLLM
+                self.api_key = "dummy-key"
         
         # Initialize client
         self._initialize_client()
     
     def _initialize_client(self):
         """Initialize the appropriate API client."""
-        if self.provider == "openai":
+        if self.provider in ["openai", "vllm"]:
             try:
                 from openai import OpenAI
-                self.client = OpenAI(api_key=self.api_key)
+                
+                # Build client args
+                client_args = {"api_key": self.api_key}
+                if self.api_base:
+                    client_args["base_url"] = self.api_base
+                
+                self.client = OpenAI(**client_args)
             except ImportError:
                 raise ImportError("OpenAI package not installed. Run: pip install openai")
         
@@ -95,14 +113,14 @@ class MultimodalInterface:
         Returns:
             Response text from LLM
         """
-        if self.provider == "openai":
+        if self.provider in ["openai", "vllm"]:
             return self._send_openai(message, system_prompt, temperature, max_tokens)
         elif self.provider == "anthropic":
             return self._send_anthropic(message, system_prompt, temperature, max_tokens)
     
     def _send_openai(self, message: MultimodalMessage, system_prompt: Optional[str],
                      temperature: float, max_tokens: int) -> str:
-        """Send message to OpenAI API."""
+        """Send message to OpenAI-compatible API (including vLLM)."""
         messages = []
         
         # Add system prompt if provided
@@ -128,14 +146,25 @@ class MultimodalInterface:
         messages.append({"role": "user", "content": content})
         
         # Call API
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
-        
-        return response.choices[0].message.content
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            
+            return response.choices[0].message.content
+        except Exception as e:
+            # Handle vLLM specific errors
+            if self.provider == "vllm":
+                error_msg = str(e)
+                if "model" in error_msg.lower():
+                    raise ValueError(
+                        f"vLLM model error: {error_msg}. "
+                        f"Make sure the model '{self.model}' is loaded in vLLM server."
+                    )
+            raise
     
     def _send_anthropic(self, message: MultimodalMessage, system_prompt: Optional[str],
                        temperature: float, max_tokens: int) -> str:
@@ -186,7 +215,7 @@ class MultimodalInterface:
         Returns:
             Response text
         """
-        if self.provider == "openai":
+        if self.provider in ["openai", "vllm"]:
             if system_prompt:
                 messages = [{"role": "system", "content": system_prompt}] + messages
             
@@ -207,6 +236,16 @@ class MultimodalInterface:
                 messages=messages
             )
             return response.content[0].text
+    
+    def check_connection(self) -> bool:
+        """Check if the API connection is working."""
+        try:
+            message = MultimodalMessage(text="Hello, this is a connection test. Reply with 'OK'.")
+            response = self.send_message(message, max_tokens=10)
+            return len(response) > 0
+        except Exception as e:
+            print(f"Connection check failed: {e}")
+            return False
 
 
 # Test function
@@ -221,13 +260,16 @@ if __name__ == "__main__":
     # Check for API keys
     openai_key = os.getenv("OPENAI_API_KEY")
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    api_base = os.getenv("OPENAI_API_BASE")
     
     print(f"OpenAI API Key: {'✓ Found' if openai_key else '✗ Not found'}")
     print(f"Anthropic API Key: {'✓ Found' if anthropic_key else '✗ Not found'}")
+    print(f"OpenAI API Base: {api_base if api_base else 'Default (OpenAI)'}")
     print()
     
-    if not openai_key and not anthropic_key:
+    if not openai_key and not anthropic_key and not api_base:
         print("No API keys found. Set OPENAI_API_KEY or ANTHROPIC_API_KEY in .env file")
+        print("Or set OPENAI_API_BASE for vLLM endpoint")
         sys.exit(1)
     
     # Test with available provider
@@ -250,4 +292,9 @@ if __name__ == "__main__":
         
         print(f"Response: {response[:200]}...")
         print("✓ Anthropic test successful")
-
+    
+    elif api_base:
+        print(f"Testing vLLM at {api_base}...")
+        # You need to specify the model name
+        print("Note: For vLLM, specify the model name loaded in your server")
+        print("Example: python multimodal_interface.py --model Qwen/Qwen2.5-VL-7B-Instruct")

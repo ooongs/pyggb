@@ -4,35 +4,30 @@ Problem Parser for Geometry Benchmark
 Extracts geometric requirements from Chinese problem text using LLM.
 
 Features:
-1. Skips problems with ambiguous references (e.g., ∠1, ∠2) that require diagrams
-2. Cleans problem text by removing phrases like "如图所示", "如图" and question parts
-3. Classifies problems into geometric categories
-4. Rates diagram construction difficulty (1-5 scale)
-5. Batch processing for creating datasets from directories
+1. Two-stage LLM processing:
+   - Stage 1: Validate problem suitability + clean text (remove non-construction content)
+   - Stage 2: Extract objects/conditions + rate construction difficulty
+2. Advanced filtering for ambiguous problems:
+   - Undefined points (e.g., ∠E without E's position)
+   - Incomplete angle definitions (e.g., ∠D instead of ∠BDC)
+   - Numbered angles (∠1, ∠2)
+3. Difficulty rating from CONSTRUCTION perspective (not problem-solving)
+4. Batch processing with incremental saving
 
 Usage:
-    # With LLM (recommended for full features)
     from problem_parser import ProblemParser, create_openai_api_function
     
     llm_func = create_openai_api_function(model="gpt-4o-mini")
     parser = ProblemParser(llm_api_function=llm_func)
     
-    # Parse single problem
+    # Parse single problem (two API calls: validate + parse)
     result = parser.parse_problem(problem_text, problem_id="1")
-    
-    # Batch process directory
-    parser.batch_parse_directory(
-        input_dir="data-5/GeoQA3/json",
-        output_file="dataset.json",
-        skip_ambiguous=True,
-        clean_text=True
-    )
 """
 
 import json
 import re
 import os
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union, Tuple
 
 
 class ProblemParser:
@@ -63,7 +58,8 @@ class ProblemParser:
     
     def has_ambiguous_references(self, problem_text: str) -> bool:
         """
-        Check if problem has ambiguous references like ∠1, ∠2 that require diagram.
+        Check if problem has obvious ambiguous references like ∠1, ∠2.
+        This is a quick pre-check before LLM validation.
         
         Args:
             problem_text: Problem text to check
@@ -83,10 +79,9 @@ class ProblemParser:
         
         return False
     
-    def clean_problem_text(self, problem_text: str) -> str:
+    def _basic_clean_text(self, problem_text: str) -> str:
         """
-        Clean problem text by removing phrases that don't affect geometric construction.
-        Removes phrases like "如图所示", "如图", and questions asking for proofs or values.
+        Basic text cleaning (without LLM) - removes obvious non-construction content.
         
         Args:
             problem_text: Original problem text
@@ -96,176 +91,225 @@ class ProblemParser:
         """
         text = problem_text
         
+        # Remove score patterns like (3分), （5分）
+        text = re.sub(r'[（\(]\s*\d+\s*分\s*[）\)]', '', text)
+        
         # Remove common diagram reference phrases
         phrases_to_remove = [
-            r'如图所?示[,，、]?',  # 如图所示, 如图示
-            r'如图[,，、]?',  # 如图
-            r'图中[,，、]?',  # 图中
-            r'观察图[,，、]?',  # 观察图
+            r'如图所?示[,，、]?',
+            r'如图[,，、]?',
+            r'图中[,，、]?',
+            r'观察图[,，、]?',
         ]
         
         for pattern in phrases_to_remove:
             text = re.sub(pattern, '', text)
         
-        # Remove question parts that ask for proof or value calculation
-        # These typically start with "则", "求", "计算", "证明" etc.
+        # Remove question parts with parentheses
         question_patterns = [
-            r'[,，、。]?则[^,，。]*[是为]?\s*\([^\)]*\)',  # 则∠AOB的大小是()
-            r'[,，、。]?求[^,，。]*[是为]?\s*\([^\)]*\)',  # 求...()
-            r'[,，、。]?计算[^,，。]*[是为]?\s*\([^\)]*\)',  # 计算...()
-            r'[,，、。]?证明[^,，。]*[是为]?\s*\([^\)]*\)',  # 证明...()
-            r'[,，、。]?判断[^,，。]*[是为]?\s*\([^\)]*\)',  # 判断...()
-            r'[,，、。]?下列[^,，。]*正确的[是为]?\s*\([^\)]*\)',  # 下列...正确的是()
+            r'[,，、。]?则[^,，。]*[是为]?\s*\([^\)]*\)',
+            r'[,，、。]?那么[^,，。]*[是为]?\s*\([^\)]*\)',
+            r'[,，、。]?求[^,，。]*[是为]?\s*\([^\)]*\)',
+            r'[,，、。]?计算[^,，。]*[是为]?\s*\([^\)]*\)',
+            r'[,，、。]?证明[^,，。]*[是为]?\s*\([^\)]*\)',
+            r'[,，、。]?判断[^,，。]*[是为]?\s*\([^\)]*\)',
+            r'[,，、。]?下列[^,，。]*正确的[是为]?\s*\([^\)]*\)',
         ]
         
         for pattern in question_patterns:
             text = re.sub(pattern, '', text)
         
-        # Remove trailing question patterns without parentheses
-        text = re.sub(r'[,，、。]?则.*[?？]?$', '', text)
-        text = re.sub(r'[,，、。]?求.*[?？]?$', '', text)
+        # Remove trailing question patterns
+        text = re.sub(r'[,，、。]?则[^。]*$', '', text)
+        text = re.sub(r'[,，、。]?那么[^。]*$', '', text)
+        text = re.sub(r'[,，、。]?求[^。]*$', '', text)
         
-        # Clean up extra spaces and punctuation
+        # Clean up punctuation and spaces
         text = re.sub(r'\s+', ' ', text)
         text = re.sub(r'^[,，、。\s]+', '', text)
         text = re.sub(r'[,，、。\s]+$', '', text)
         
         return text.strip()
     
-    def classify_problem(self, problem_text: str) -> str:
+    def validate_and_clean_problem(self, problem_text: str, problem_id: str = None) -> Tuple[bool, str, str]:
         """
-        Classify the geometric problem into a category using LLM.
+        Stage 1 API Call: Validate problem suitability and clean text.
+        
+        Checks for:
+        - Undefined points (e.g., ∠E without E's position defined)
+        - Incomplete angle definitions (e.g., ∠D instead of ∠BDC)
+        - Points not on defined lines/segments
+        - All geometric objects properly defined
         
         Args:
-            problem_text: Problem text to classify
+            problem_text: Original problem text
+            problem_id: Problem identifier
             
         Returns:
-            Problem category
+            Tuple of (is_valid, cleaned_text, rejection_reason)
         """
         if not self.llm_api:
-            return "Unknown"
+            # Without LLM, just do basic cleaning
+            cleaned = self._basic_clean_text(problem_text)
+            return (True, cleaned, "")
         
-        categories_str = "\n".join([f"{i+1}. {cat}" for i, cat in enumerate(self.PROBLEM_CATEGORIES)])
-        
-        prompt = f"""Classify the following Chinese geometry problem into ONE of these categories:
-
-{categories_str}
-
-Problem: {problem_text}
-
-Return ONLY the category name, nothing else."""
+        prompt = self._create_validation_prompt(problem_text)
         
         try:
-            response = self.llm_api(prompt).strip()
+            response = self.llm_api(prompt)
+            response = response.strip()
             
-            # Try to match response to one of the categories
-            for category in self.PROBLEM_CATEGORIES:
-                if category.lower() in response.lower():
-                    return category
+            # Extract JSON from response
+            if response.startswith("```json"):
+                response = response[7:]
+            if response.startswith("```"):
+                response = response[3:]
+            if response.endswith("```"):
+                response = response[:-3]
+            response = response.strip()
             
-            # If no exact match, return the response or "Unknown"
-            return response if response else "Unknown"
+            result = json.loads(response)
+            
+            is_valid = result.get("is_valid", False)
+            cleaned_text = result.get("cleaned_text", "")
+            rejection_reason = result.get("rejection_reason", "")
+            
+            if not is_valid:
+                print(f"Problem {problem_id} rejected: {rejection_reason}")
+            
+            return (is_valid, cleaned_text, rejection_reason)
+            
         except Exception as e:
-            print(f"Classification failed: {e}")
-            return "Unknown"
+            print(f"Validation failed for {problem_id}: {e}")
+            # Fallback to basic cleaning
+            cleaned = self._basic_clean_text(problem_text)
+            return (True, cleaned, "")
     
-    def rate_difficulty(self, problem_text: str) -> int:
-        """
-        Rate the geometric diagram difficulty from 1 (easiest) to 5 (hardest) using LLM.
-        
-        Args:
-            problem_text: Problem text to rate
-            
-        Returns:
-            Difficulty rating (1-5)
-        """
-        if not self.llm_api:
-            return 3  # Default medium difficulty
-        
-        prompt = f"""Rate the difficulty of constructing the geometric diagram for this Chinese geometry problem on a scale of 1-5:
-
-1 = Very Easy (basic shapes, few objects, simple relationships)
-2 = Easy (simple constructions, clear relationships)
-3 = Medium (moderate complexity, multiple objects)
-4 = Hard (complex constructions, many relationships, requires careful planning)
-5 = Very Hard (very complex, many objects, intricate relationships)
-
-Consider factors like:
-- Number of geometric objects (points, lines, circles, polygons)
-- Complexity of relationships (parallel, perpendicular, angles, etc.)
-- Number of constraints and conditions
-- Whether special constructions are needed (bisectors, perpendiculars, etc.)
+    def _create_validation_prompt(self, problem_text: str) -> str:
+        """Create prompt for Stage 1: Validation and cleaning."""
+        prompt = f"""Analyze this Chinese geometry problem for GEOMETRIC CONSTRUCTION suitability.
 
 Problem: {problem_text}
 
-Return ONLY a single number from 1 to 5, nothing else."""
-        
-        try:
-            response = self.llm_api(prompt).strip()
-            
-            # Extract first digit from response
-            match = re.search(r'[1-5]', response)
-            if match:
-                return int(match.group())
-            
-            return 3  # Default medium difficulty
-        except Exception as e:
-            print(f"Difficulty rating failed: {e}")
-            return 3
+Your task:
+1. Determine if this problem can be used for geometric figure construction
+2. Remove non-construction content (questions, scores, "如图", etc.)
+3. Keep ONLY the geometric setup conditions
+
+**REJECTION CRITERIA** (return is_valid: false if ANY apply):
+
+1. **Undefined Points**: A point is mentioned but its position is not defined
+   - ❌ "∠E=40°" - E's position is unknown (which line is E on?)
+   - ❌ "∠BDC=30°" - D's position is not defined (D is on which line?)
+   - ✓ "D在AB上,∠BDC=30°" - D is defined as being on AB
+
+2. **Ambiguous Angles**: Single-letter angle without context
+   - ❌ "∠D=26°" - Could mean ∠ADB, ∠BDC, ∠ADC, etc.
+   - ❌ "∠E=35°" - Which angle at E?
+   - ✓ "∠ABC=50°" - Clear 3-point angle
+   - ✓ "在△ABC中,∠A=60°" - ∠A is ∠BAC in context of triangle ABC
+
+3. **Numbered Angles**: References like ∠1, ∠2, ∠① require diagram
+   - ❌ "∠1=30°,∠2=45°"
+
+4. **Incomplete Constraints**: Not enough information to construct
+   - ❌ "AB∥CD,∠E=40°" - E is not positioned, angle not constructible
+
+5. **Pure Calculation Problems**: No actual construction, just asking for values
+   - ❌ Problems that only ask to calculate without defining constructible geometry
+
+**CLEANING RULES** (remove these from text):
+
+1. Score indicators: "(3分)", "（5分）"
+2. Diagram references: "如图", "如图所示", "图中"
+3. Questions: "则∠AOB的大小是()", "那么∠BOD为()", "求...的值"
+4. Proof requests: "证明...", "判断..."
+5. Answer choices: "A. 30° B. 45° C. 60°"
+6. Any text after "则", "那么", "求", "证明"
+
+**KEEP in cleaned_text**:
+- Shape definitions: "在△ABC中", "四边形ABCD"
+- Point positions: "D在AB上", "E是BC的中点"
+- Measurements: "AB=5", "∠ABC=60°"
+- Relationships: "AB∥CD", "AB⊥BC"
+
+Return JSON:
+{{
+    "is_valid": true/false,
+    "cleaned_text": "cleaned problem text with only construction conditions",
+    "rejection_reason": "reason if invalid, empty string if valid"
+}}
+
+Only return the JSON, no other text."""
+        return prompt
     
     def parse_problem(self, problem_text: str, problem_id: str = None, 
-                     skip_ambiguous: bool = True, clean_text: bool = True) -> Optional[Dict[str, Any]]:
+                     skip_ambiguous: bool = True) -> Optional[Dict[str, Any]]:
         """
-        Parse a geometry problem and extract requirements.
+        Parse a geometry problem using two-stage LLM processing.
+        
+        Stage 1: Validate problem suitability + clean text
+        Stage 2: Extract objects/conditions + rate difficulty
         
         Args:
             problem_text: Chinese text describing the geometry problem
             problem_id: Optional problem identifier
-            skip_ambiguous: If True, skip problems with ambiguous references like ∠1
-            clean_text: If True, clean the problem text before parsing
+            skip_ambiguous: If True, skip problems with obvious ambiguous refs (∠1, ∠2)
             
         Returns:
-            Dictionary with required_objects and verification_conditions, or None if skipped
+            Dictionary with parsed data, or None if problem is not suitable
         """
-        # Check for ambiguous references
+        original_text = problem_text
+        
+        # Quick pre-check for numbered angles (no API needed)
         if skip_ambiguous and self.has_ambiguous_references(problem_text):
-            print(f"Skipping problem {problem_id}: contains ambiguous references (e.g., ∠1, ∠2)")
+            print(f"Skipping problem {problem_id}: contains numbered angles (∠1, ∠2)")
             return None
         
-        # Clean the problem text
-        original_text = problem_text
-        if clean_text:
-            problem_text = self.clean_problem_text(problem_text)
-            if not problem_text:  # If cleaning removed everything
-                print(f"Skipping problem {problem_id}: no constructible content after cleaning")
-                return None
+        # Stage 1: Validate and clean (first API call)
+        is_valid, cleaned_text, rejection_reason = self.validate_and_clean_problem(
+            problem_text, problem_id
+        )
         
+        if not is_valid:
+            return None
+        
+        if not cleaned_text or len(cleaned_text.strip()) < 5:
+            print(f"Skipping problem {problem_id}: no constructible content after cleaning")
+            return None
+        
+        # Stage 2: Parse objects/conditions and rate difficulty (second API call)
         if self.llm_api:
-            result = self._parse_with_llm(problem_text, problem_id)
+            result = self._parse_and_rate_with_llm(cleaned_text, problem_id)
         else:
-            # Fallback to rule-based parsing
-            result = self._parse_rule_based(problem_text, problem_id)
+            result = self._parse_rule_based(cleaned_text, problem_id)
+            result["difficulty"] = 3  # Default
+            result["category"] = "Unknown"
         
-        # Add original and cleaned text
+        # Add text info
         result["original_text"] = original_text
-        result["cleaned_text"] = problem_text
-        
-        # Add classification and difficulty rating
-        if self.llm_api:
-            result["category"] = self.classify_problem(problem_text)
-            result["difficulty"] = self.rate_difficulty(problem_text)
+        result["cleaned_text"] = cleaned_text
         
         return result
     
-    def _parse_with_llm(self, problem_text: str, problem_id: str = None) -> Dict[str, Any]:
-        """Use LLM API to parse problem text."""
-        prompt = self._create_parsing_prompt(problem_text)
+    def _parse_and_rate_with_llm(self, problem_text: str, problem_id: str = None) -> Dict[str, Any]:
+        """
+        Stage 2 API Call: Parse objects/conditions and rate construction difficulty.
+        
+        Args:
+            problem_text: Cleaned problem text
+            problem_id: Problem identifier
+            
+        Returns:
+            Parsed problem data with difficulty rating
+        """
+        prompt = self._create_parsing_and_rating_prompt(problem_text)
         
         try:
             response = self.llm_api(prompt)
-            
-            # Extract JSON from response (handle markdown code blocks)
             response = response.strip()
+            
+            # Extract JSON
             if response.startswith("```json"):
                 response = response[7:]
             if response.startswith("```"):
@@ -280,16 +324,173 @@ Return ONLY a single number from 1 to 5, nothing else."""
                 "id": problem_id or "unknown",
                 "subject": problem_text,
                 "required_objects": parsed_data.get("required_objects", {}),
-                "verification_conditions": parsed_data.get("verification_conditions", [])
+                "verification_conditions": parsed_data.get("verification_conditions", []),
+                "category": parsed_data.get("category", "Unknown"),
+                "difficulty": parsed_data.get("difficulty", 3)
             }
             
-            # Validate and auto-correct the parsed data
+            # Validate and auto-correct
             result = self._validate_and_correct_parsed_data(result)
             
             return result
+            
         except Exception as e:
-            print(f"LLM parsing failed: {e}, falling back to rule-based parsing")
-            return self._parse_rule_based(problem_text, problem_id)
+            print(f"LLM parsing failed: {e}, falling back to rule-based")
+            result = self._parse_rule_based(problem_text, problem_id)
+            result["category"] = "Unknown"
+            result["difficulty"] = 3
+            return result
+    
+    def _create_parsing_and_rating_prompt(self, problem_text: str) -> str:
+        """Create prompt for Stage 2: Parsing and difficulty rating."""
+        categories_str = "\n".join([f"- {cat}" for cat in self.PROBLEM_CATEGORIES])
+        
+        prompt = f"""Parse this geometry problem and extract construction requirements.
+
+Problem: {problem_text}
+
+**TASK 1: Extract geometric objects and conditions**
+
+Return required_objects and verification_conditions as specified below.
+
+**TASK 2: Classify into ONE category**:
+{categories_str}
+
+**TASK 3: Rate CONSTRUCTION difficulty (1-5)**
+
+Rate how difficult it is to DRAW/CONSTRUCT the figure, NOT solve the problem.
+
+1 = Very Easy: Simple shapes (single triangle, rectangle)
+   - Example: "在△ABC中,∠C=90°"
+   
+2 = Easy: Basic constructions, few constraints
+   - Example: "△ABC中,D是BC中点,AD⊥BC"
+   
+3 = Medium: Multiple objects, several relationships
+   - Example: "AB∥CD,EF交AB于E,交CD于F,∠BEF=50°"
+   
+4 = Hard: Complex constructions, many objects, requires planning
+   - Example: "四边形ABCD,E在AB上,F在CD上,EF∥AD,AG∥EF"
+   
+5 = Very Hard: Very complex, many interdependent constraints
+   - Example: Multiple circles, tangent lines, concurrent lines, etc.
+
+**Construction difficulty factors**:
+- Number of points, lines, circles
+- Dependent constructions (point depends on intersection, etc.)
+- Precision requirements (specific angles, lengths)
+- Need for auxiliary constructions
+
+Return JSON:
+{{
+    "required_objects": {{
+        "points": ["A", "B", "C"],
+        "segments": [["A", "B"], ["B", "C"]],
+        "lines": [],
+        "circles": [{{"center": "O", "radius_point": "A"}}],
+        "polygons": [["A", "B", "C"]]
+    }},
+    "verification_conditions": [
+        // Basic geometric relationships
+        {{"type": "parallel", "objects": [["A", "B"], ["C", "D"]]}},
+        {{"type": "perpendicular", "objects": [["A", "B"], ["C", "D"]]}},
+        {{"type": "collinear", "points": ["A", "B", "C"]}},
+        {{"type": "not_collinear", "points": ["A", "B", "C"]}},
+        {{"type": "concurrent", "lines": [["A", "B"], ["C", "D"], ["E", "F"]]}},
+        
+        // Angle conditions
+        {{"type": "angle_value", "points": [["A", "B", "C"]], "value": 90}},
+        {{"type": "angle_equality", "points": [["A", "B", "C"], ["D", "E", "F"]]}},
+        {{"type": "angle_sum", "angles": [{{"points": ["A", "B", "C"]}}, {{"points": ["D", "E", "F"]}}], "value": 180}},
+        {{"type": "angle_bisector", "line": ["E", "G"], "angle_points": ["B", "E", "F"]}},
+        
+        // Segment/Length conditions
+        {{"type": "segment_equality", "segments": [["A", "B"], ["C", "D"]]}},
+        {{"type": "distance_equals", "segment": ["A", "B"], "value": 5}},
+        {{"type": "segment_length", "segment": ["A", "B"], "value": 10}},
+        {{"type": "perimeter", "polygon": ["A", "B", "C"], "value": 20}},
+        
+        // Sum of segments conditions
+        {{"type": "segments_sum_value", "segments": [["A", "B"], ["B", "C"]], "value": 15}},
+        {{"type": "segments_sum_equals", "left_segments": [["A", "B"], ["B", "D"]], "right_segments": [["A", "C"]]}},
+        {{"type": "ratio", "segments": [["A", "E"], ["E", "C"]], "ratio": [1, 2]}},
+        
+        // Point position conditions
+        {{"type": "point_on_segment", "point": "D", "segment": ["A", "B"]}},
+        {{"type": "point_on_line", "point": "D", "line": ["A", "B"]}},
+        {{"type": "point_on_line_extension", "point": "E", "line_segment": ["A", "B"]}},
+        {{"type": "point_on_segment_extension", "point": "E", "segment": ["A", "B"]}},
+        {{"type": "midpoint_of", "point": "M", "segment": ["A", "B"]}},
+        {{"type": "order_on_line", "points": ["A", "B", "C", "D"]}},
+        {{"type": "same_side", "points": ["P", "Q"], "line": ["A", "B"]}},
+        
+        // Circle conditions
+        {{"type": "point_on_circle", "point": "P", "circle_center": "O"}},
+        {{"type": "concyclic", "points": ["A", "B", "C", "D"]}},
+        {{"type": "tangent_line", "line": ["P", "T"], "circle_center": "O"}},
+        {{"type": "tangent_at_point", "line": ["P", "T"], "circle_center": "O", "tangent_point": "T"}},
+        {{"type": "diameter", "segment": ["A", "B"], "circle_center": "O"}},
+        {{"type": "point_inside_circle", "point": "P", "circle_center": "O", "radius": 5}},
+        
+        // Polygon/Triangle conditions
+        {{"type": "triangle_valid", "points": ["A", "B", "C"]}},
+        {{"type": "isosceles_triangle", "points": ["A", "B", "C"], "equal_sides": [["A", "B"], ["A", "C"]]}},
+        {{"type": "right_triangle", "points": ["A", "B", "C"]}},
+        {{"type": "polygon_property", "polygon": ["A", "B", "C", "D"], "property": "parallelogram"}},
+        {{"type": "polygon_type", "polygon": ["A", "B", "C", "D"], "value": "rhombus"}},
+        {{"type": "square", "polygons": [["A", "B", "C", "D"]]}},
+        {{"type": "regular_polygon", "polygon_points": ["A", "B", "C", "D", "E", "F"], "sides": 6}},
+        
+        // Special points
+        {{"type": "intersection_point", "point": "P", "lines": [["A", "B"], ["C", "D"]]}},
+        {{"type": "point_incenter", "point": "I", "triangle": ["A", "B", "C"]}},
+        {{"type": "perpendicular_bisector", "line": ["M", "N"], "segment": ["A", "B"]}}
+    ],
+    "category": "Category Name",
+    "difficulty": 3
+}}
+
+**SUPPORTED CONDITION TYPES**:
+- Basic: parallel, perpendicular, collinear, not_collinear, concurrent
+- Angles: angle_value, angle_equality, angle_sum, angle_bisector
+- Segments: segment_equality, distance_equals, segment_length, perimeter, segments_sum_value, segments_sum_equals, ratio
+- Points: point_on_segment, point_on_line, point_on_line_extension, midpoint_of, order_on_line, same_side
+- Circles: point_on_circle, concyclic, tangent_line, tangent_at_point, diameter, point_inside_circle
+- Polygons: triangle_valid, isosceles_triangle, right_triangle, polygon_property, polygon_type, square, regular_polygon
+- Special: intersection_point, point_incenter, perpendicular_bisector
+
+**LENGTH EXTRACTION RULES**:
+1. "周长为30" or "周长=30" → {{"type": "perimeter", "polygon": [...], "value": 30}}
+2. "AB=5" or "AB=5cm" → {{"type": "segment_length", "segment": ["A", "B"], "value": 5}}
+3. "AB=BC" → {{"type": "segment_equality", "segments": [["A", "B"], ["B", "C"]]}}
+4. "AB+BC=10" → {{"type": "segments_sum_value", "segments": [["A", "B"], ["B", "C"]], "value": 10}}
+5. "AB+BD=AC" → {{"type": "segments_sum_equals", "left_segments": [["A", "B"], ["B", "D"]], "right_segments": [["A", "C"]]}}
+6. "AE:EC=1:2" or "AE是EC的一半" → {{"type": "ratio", "segments": [["A", "E"], ["E", "C"]], "ratio": [1, 2]}}
+
+**CRITICAL RULES**:
+1. angle_value points MUST be nested: [["A", "B", "C"]] with B as vertex
+2. parallel/perpendicular use "objects" field with 2D array
+3. All points in conditions must be in required_objects.points
+4. difficulty is INTEGER 1-5 based on CONSTRUCTION complexity
+5. Use ONLY the supported condition types listed above
+
+Only return JSON, no other text."""
+        return prompt
+    
+    # Legacy method kept for compatibility
+    def clean_problem_text(self, problem_text: str) -> str:
+        """Legacy method - now uses _basic_clean_text internally."""
+        return self._basic_clean_text(problem_text)
+    
+    def classify_problem(self, problem_text: str) -> str:
+        """Classify problem - now integrated into Stage 2 parsing."""
+        # This is now done in _parse_and_rate_with_llm
+        return "Unknown"
+    
+    def rate_difficulty(self, problem_text: str) -> int:
+        """Rate difficulty - now integrated into Stage 2 parsing."""
+        # This is now done in _parse_and_rate_with_llm
+        return 3
     
     def _parse_rule_based(self, problem_text: str, problem_id: str = None) -> Dict[str, Any]:
         """
@@ -338,6 +539,15 @@ Return ONLY a single number from 1 to 5, nothing else."""
         if '中点' in problem_text:
             midpoint_conditions = self._extract_midpoint_conditions(problem_text, points)
             conditions.extend(midpoint_conditions)
+        
+        # Check for length conditions (长度, =数字, cm, 周长)
+        length_conditions = self._extract_length_conditions(problem_text, points)
+        conditions.extend(length_conditions)
+        
+        # Check for perimeter conditions (周长)
+        if '周长' in problem_text:
+            perimeter_conditions = self._extract_perimeter_conditions(problem_text, points)
+            conditions.extend(perimeter_conditions)
         
         # Infer required objects from points
         required_objects = self._infer_objects_from_points(points, problem_text)
@@ -533,6 +743,168 @@ Return ONLY a single number from 1 to 5, nothing else."""
         
         return conditions
     
+    def _extract_length_conditions(self, text: str, points: List[str]) -> List[Dict[str, Any]]:
+        """Extract segment length conditions from text."""
+        conditions = []
+        
+        # First, find all patterns that should NOT be treated as simple segment_length
+        # These are segments that appear in sum or ratio patterns
+        
+        # Find segments in sum patterns: AB+BC=... 
+        sum_segments = set()
+        sum_pattern = r'([A-Z]{2})\s*\+\s*([A-Z]{2})[=等于]'
+        for match in re.finditer(sum_pattern, text):
+            sum_segments.add(match.group(1))
+            sum_segments.add(match.group(2))
+        
+        # Find segments in ratio patterns: AE:EC=...
+        ratio_segments = set()
+        ratio_pattern = r'([A-Z]{2})\s*[:：]\s*([A-Z]{2})\s*[=等于]'
+        for match in re.finditer(ratio_pattern, text):
+            ratio_segments.add(match.group(1))
+            ratio_segments.add(match.group(2))
+        
+        # Pattern: AB=5 or AB=5cm or AB=5厘米
+        # Match segment with numeric value, but exclude those in sum/ratio patterns
+        length_pattern = r'(?<!\+\s)([A-Z]{2})[=等于]\s*(\d+(?:\.\d+)?)\s*(?:cm|厘米|CM)?(?![A-Z:：])'
+        matches = re.findall(length_pattern, text)
+        
+        for match in matches:
+            segment_str = match[0]
+            # Skip if this segment is part of a sum pattern (the second segment after +)
+            if segment_str in sum_segments or segment_str in ratio_segments:
+                continue
+            segment = list(segment_str)  # "AB" -> ["A", "B"]
+            value = float(match[1])
+            conditions.append({
+                "type": "segment_length",
+                "segment": segment,
+                "value": value
+            })
+        
+        # Pattern: AB=BC (segment equality without numeric value)
+        equality_pattern = r'([A-Z]{2})[=等于]+([A-Z]{2})(?!\d)(?!\s*[:：])'
+        matches = re.findall(equality_pattern, text)
+        
+        for match in matches:
+            seg1 = list(match[0])
+            seg2 = list(match[1])
+            # Check it's not already captured as length condition
+            if seg1[0] in points and seg1[1] in points and seg2[0] in points and seg2[1] in points:
+                conditions.append({
+                    "type": "segment_equality",
+                    "segments": [seg1, seg2]
+                })
+        
+        # Pattern: AB+BC=10 (sum of segments equals value)
+        sum_value_pattern = r'([A-Z]{2})\s*\+\s*([A-Z]{2})[=等于]\s*(\d+(?:\.\d+)?)'
+        matches = re.findall(sum_value_pattern, text)
+        
+        for match in matches:
+            seg1 = list(match[0])
+            seg2 = list(match[1])
+            value = float(match[2])
+            conditions.append({
+                "type": "segments_sum_value",
+                "segments": [seg1, seg2],
+                "value": value
+            })
+        
+        # Pattern: AB+BD=AC (sum equals another segment)
+        sum_equals_pattern = r'([A-Z]{2})\s*\+\s*([A-Z]{2})[=等于]+([A-Z]{2})(?!\d)'
+        matches = re.findall(sum_equals_pattern, text)
+        
+        for match in matches:
+            seg1 = list(match[0])
+            seg2 = list(match[1])
+            target_seg = list(match[2])
+            conditions.append({
+                "type": "segments_sum_equals",
+                "left_segments": [seg1, seg2],
+                "right_segments": [target_seg]
+            })
+        
+        # Pattern: AE:EC=1:2 or AE:EC=m:n (ratio)
+        ratio_full_pattern = r'([A-Z]{2})\s*[:：]\s*([A-Z]{2})\s*[=等于]\s*(\d+)\s*[:：]\s*(\d+)'
+        matches = re.findall(ratio_full_pattern, text)
+        
+        for match in matches:
+            seg1 = list(match[0])
+            seg2 = list(match[1])
+            ratio1 = int(match[2])
+            ratio2 = int(match[3])
+            conditions.append({
+                "type": "ratio",
+                "segments": [seg1, seg2],
+                "ratio": [ratio1, ratio2]
+            })
+        
+        return conditions
+    
+    def _extract_perimeter_conditions(self, text: str, points: List[str]) -> List[Dict[str, Any]]:
+        """Extract perimeter conditions from text."""
+        conditions = []
+        found_specific = False
+        
+        # Pattern: △ABC的周长为30 or 三角形ABC周长=30
+        triangle_perimeter_pattern = r'[△三角形]\s*([A-Z]{3})[的]?周长[为=等于]\s*(\d+(?:\.\d+)?)'
+        matches = re.findall(triangle_perimeter_pattern, text)
+        
+        for match in matches:
+            polygon = list(match[0])  # "ABC" -> ["A", "B", "C"]
+            value = float(match[1])
+            conditions.append({
+                "type": "perimeter",
+                "polygon": polygon,
+                "value": value
+            })
+            found_specific = True
+        
+        # Pattern: 四边形ABCD的周长为40
+        quad_perimeter_pattern = r'四边形\s*([A-Z]{4})[的]?周长[为=等于]\s*(\d+(?:\.\d+)?)'
+        quad_matches = re.findall(quad_perimeter_pattern, text)
+        
+        for match in quad_matches:
+            polygon = list(match[0])  # "ABCD" -> ["A", "B", "C", "D"]
+            value = float(match[1])
+            conditions.append({
+                "type": "perimeter",
+                "polygon": polygon,
+                "value": value
+            })
+            found_specific = True
+        
+        # Generic perimeter pattern without specific shape reference
+        # Pattern: 周长为30cm or 周长=20
+        # Only process if no specific patterns matched
+        if not found_specific:
+            generic_perimeter_pattern = r'周长[为=等于]\s*(\d+(?:\.\d+)?)\s*(?:cm|厘米|CM)?'
+            generic_matches = re.findall(generic_perimeter_pattern, text)
+            
+            # Try to infer the polygon from context
+            # Look for △ABC or 三角形ABC or 四边形ABCD
+            triangle_match = re.search(r'[△三角形]\s*([A-Z]{3})', text)
+            quad_match = re.search(r'四边形\s*([A-Z]{4})', text)
+            
+            for value_str in generic_matches:
+                value = float(value_str)
+                if triangle_match:
+                    polygon = list(triangle_match.group(1))
+                    conditions.append({
+                        "type": "perimeter",
+                        "polygon": polygon,
+                        "value": value
+                    })
+                elif quad_match:
+                    polygon = list(quad_match.group(1))
+                    conditions.append({
+                        "type": "perimeter",
+                        "polygon": polygon,
+                        "value": value
+                    })
+        
+        return conditions
+    
     def _validate_and_correct_parsed_data(self, parsed_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Validate and auto-correct common mistakes in parsed data.
@@ -659,108 +1031,6 @@ Return ONLY a single number from 1 to 5, nothing else."""
         
         return required_objects
     
-    def _create_parsing_prompt(self, problem_text: str) -> str:
-        """Create a prompt for LLM to parse geometry problem."""
-        prompt = f"""Parse the following Chinese geometry problem and extract:
-1. Required geometric objects (points, segments, lines, circles, polygons)
-2. Geometric conditions that must be verified (parallel, perpendicular, angles, etc.)
-
-Problem: {problem_text}
-
-Return a JSON object with this structure:
-{{
-  "required_objects": {{
-    "points": ["A", "B", "C", ...],
-    "segments": [["A", "B"], ["B", "C"], ...],
-    "lines": [["A", "B"], ["C", "D"], ...],
-    "circles": [{{"center": "O", "radius_point": "A"}}, ...],
-    "polygons": [["A", "B", "C"], ...]
-  }},
-  "verification_conditions": [
-    {{"type": "parallel", "objects": [["A", "B"], ["C", "D"]]}},
-    {{"type": "perpendicular", "objects": [["A", "B"], ["C", "D"]]}},
-    {{"type": "angle_value", "points": [["A", "B", "C"]], "value": 50}},
-    {{"type": "angle_equality", "points": [["A", "B", "C"], ["D", "E", "F"]]}},
-    {{"type": "segment_equality", "segments": [["A", "B"], ["C", "D"]]}},
-    {{"type": "collinear", "points": ["A", "B", "C"]}},
-    {{"type": "not_collinear", "points": ["A", "B", "C"]}},
-    {{"type": "point_on_line", "point": "D", "line": ["A", "B"]}},
-    {{"type": "point_on_segment", "point": "D", "segment": ["A", "B"]}},
-    {{"type": "point_on_circle", "point": "A", "circle_center": "O"}},
-    {{"type": "angle_bisector", "line": ["E", "G"], "angle_points": ["B", "E", "F"]}},
-    {{"type": "midpoint_of", "point": "M", "segment": ["A", "B"]}},
-    {{"type": "distance_equals", "segment": ["A", "B"], "value": 10.0}},
-    {{"type": "triangle_valid", "points": ["A", "B", "C"]}},
-    {{"type": "concyclic", "points": ["A", "B", "C", "D"]}},
-    {{"type": "concurrent", "lines": [["A", "B"], ["C", "D"], ["E", "F"]]}}
-  ]
-}}
-
-CRITICAL RULES FOR CONDITION TYPES:
-
-1. **angle_value**: ALWAYS use 3 points in nested format [["P1", "P2", "P3"]] where P2 is the vertex.
-   - ✓ CORRECT: {{"type": "angle_value", "points": [["B", "A", "C"]], "value": 80}}
-   - ✗ WRONG: {{"type": "angle_value", "points": ["B", "A", "C"], "value": 80}}
-   - If text says "∠A=80°" in triangle ABC, use [["B", "A", "C"]] or [["C", "A", "B"]] with A in the middle.
-
-2. **parallel**: Use "objects" field with two 2-point lines.
-   - ✓ CORRECT: {{"type": "parallel", "objects": [["A", "B"], ["C", "D"]]}}
-   - Chinese: "AB∥CD" or "AB平行CD"
-
-3. **perpendicular**: Use "objects" field with two 2-point lines.
-   - ✓ CORRECT: {{"type": "perpendicular", "objects": [["A", "B"], ["C", "D"]]}}
-   - Chinese: "AB⊥CD" or "AB垂直CD"
-
-4. **point_on_segment**: When text says "D在AB上" (D is on AB).
-   - ✓ CORRECT: {{"type": "point_on_segment", "point": "D", "segment": ["A", "B"]}}
-   - Use this instead of "point_on_line" when the point must be BETWEEN the endpoints.
-
-5. **angle_bisector**: When a line bisects an angle.
-   - ✓ CORRECT: {{"type": "angle_bisector", "line": ["E", "G"], "angle_points": ["B", "E", "F"]}}
-   - Chinese: "EG平分∠BEF"
-
-6. **midpoint_of**: When a point is the midpoint of a segment.
-   - ✓ CORRECT: {{"type": "midpoint_of", "point": "M", "segment": ["A", "B"]}}
-   - Chinese: "M是AB的中点" or "M为AB中点"
-
-7. **triangle_valid**: For ensuring non-degenerate triangles (usually implicit).
-   - ✓ CORRECT: {{"type": "triangle_valid", "points": ["A", "B", "C"]}}
-
-STEP-BY-STEP PARSING GUIDE:
-
-Step 1: Extract all point names (uppercase letters like A, B, C, D, E, etc.)
-
-Step 2: Identify geometric shapes:
-- Triangle: "三角形ABC" → polygon ["A", "B", "C"]
-- Quadrilateral: "四边形ABCD" → polygon ["A", "B", "C", "D"]
-- Circle: "圆O" or "⊙O" → circle with center "O"
-
-Step 3: Extract segments and lines mentioned:
-- Any two consecutive points in a shape form a segment
-- Lines explicitly mentioned (e.g., "直线AB")
-
-Step 4: Parse conditions:
-- Parallel: "∥" or "平行"
-- Perpendicular: "⊥" or "垂直"
-- Angles: "∠ABC=50°" → angle_value with proper nesting
-- Points on segments/lines: "D在AB上" or "D、E分别在AB、AC上"
-- Bisectors: "平分"
-- Equal segments: "AB=CD"
-
-Step 5: Validate JSON structure:
-- All angle_value conditions must have nested points: [["A", "B", "C"]]
-- All point references must be in the points list
-- All segment/line references must use valid point pairs
-
-COMMON MISTAKES TO AVOID:
-- ✗ {{"type": "angle_value", "points": ["A", "B", "C"]}} // Missing nested list
-- ✗ {{"type": "parallel", "lines": [...]}} // Use "objects" not "lines"
-- ✗ {{"type": "point_on_line", ...}} when point is on segment // Use "point_on_segment"
-- ✗ Forgetting to include all points mentioned in the problem
-
-Only return the JSON object, no other text or markdown formatting.
-"""
-        return prompt
     
     def parse_from_json(self, json_file: str, skip_ambiguous: bool = True, 
                        clean_text: bool = True) -> Optional[Dict[str, Any]]:
@@ -770,7 +1040,7 @@ Only return the JSON object, no other text or markdown formatting.
         Args:
             json_file: Path to JSON file
             skip_ambiguous: If True, skip problems with ambiguous references
-            clean_text: If True, clean the problem text before parsing
+            clean_text: Ignored (cleaning is now part of Stage 1)
             
         Returns:
             Parsed problem data, or None if skipped
@@ -781,7 +1051,7 @@ Only return the JSON object, no other text or markdown formatting.
         problem_text = data.get('subject', '')
         problem_id = str(data.get('id', 'unknown'))
         
-        return self.parse_problem(problem_text, problem_id, skip_ambiguous, clean_text)
+        return self.parse_problem(problem_text, problem_id, skip_ambiguous)
     
     def save_to_benchmark_format(self, parsed_data: Dict[str, Any], output_file: str):
         """Save parsed data to benchmark format JSON file."""
@@ -926,42 +1196,73 @@ def create_openai_api_function(model: str = "gpt-4o-mini", api_key: str = None):
 
 # Example usage
 if __name__ == "__main__":
-    # Example: Parse the problem from 1.json
+    print("="*70)
+    print("Problem Parser - Two-Stage LLM Processing")
+    print("Stage 1: Validate problem suitability + clean text")
+    print("Stage 2: Extract objects/conditions + rate construction difficulty")
+    print("="*70)
     
-    # Option 1: Rule-based parsing (default)
-    parser = ProblemParser()
-    
-    # Option 2: With OpenAI LLM (recommended for classification and difficulty rating)
+    # Setup parser
     api_key = os.getenv("OPENAI_API_KEY")
     if api_key:
         llm_function = create_openai_api_function(model="gpt-4o-mini", api_key=api_key)
         parser = ProblemParser(llm_api_function=llm_function)
-        print("Using OpenAI API for parsing, classification, and difficulty rating\n")
+        print("\n✓ Using OpenAI API for two-stage processing\n")
     else:
-        print("OPENAI_API_KEY not found, using rule-based parsing only\n")
+        print("\n⚠️  OPENAI_API_KEY not found, using rule-based parsing only\n")
+        parser = ProblemParser()
     
-    # Test with example problems
+    # Test with example problems - including some that should be rejected
     test_problems = [
+        # Should PASS: Well-defined problem
         ("如图,AB∥CD,直线EF交AB于点E,交CD于点F,EG平分∠BEF,交CD于点G,∠EFG=50°,则∠EGF等于()", "test1"),
-        ("如图所示,∠1=30°,∠2=45°,求∠3的大小", "test2"),  # Should be skipped (ambiguous ∠1, ∠2)
-        ("在三角形ABC中,AB=BC,∠ABC=90°", "test3"),
+        
+        # Should FAIL: Numbered angles (∠1, ∠2)
+        ("如图所示,∠1=30°,∠2=45°,求∠3的大小", "test2"),
+        
+        # Should FAIL: Undefined point E (∠E without E's position)
+        ("AB∥CD,∠E=40°,∠A=110°", "test3"),
+        
+        # Should FAIL: D's position not defined (∠BDC but where is D?)
+        ("在△ABC中,∠C=90°,∠BDC=30°,AD=2BC", "test4"),
+        
+        # Should FAIL: Single-letter angle ∠D without context
+        ("AB∥CD,∠D=26°,∠E=35°", "test5"),
+        
+        # Should PASS: Well-defined triangle
+        ("在三角形ABC中,AB=BC,∠ABC=90°", "test6"),
+        
+        # Should PASS: Point position defined
+        ("(3分)如图,在△ABC中,D在AB上,∠ACD=∠B,CD=4,那么AC·BC的值为()", "test7"),
     ]
     
+    passed = 0
+    failed = 0
+    
     for problem_text, problem_id in test_problems:
-        print(f"\n{'='*60}")
-        print(f"Problem {problem_id}: {problem_text}")
-        print('='*60)
+        print(f"\n{'='*70}")
+        print(f"Problem {problem_id}: {problem_text[:60]}...")
+        print('='*70)
         
         result = parser.parse_problem(
             problem_text, 
             problem_id=problem_id,
-            skip_ambiguous=True,  # Skip problems with ∠1, ∠2, etc.
-            clean_text=True  # Remove "如图所示" and question parts
+            skip_ambiguous=True
         )
         
         if result is None:
-            print("⚠️  Problem skipped (ambiguous references or no constructible content)")
+            print("❌ Problem REJECTED (ambiguous/undefined references)")
+            failed += 1
         else:
-            print("\n✓ Parsed Problem:")
-            print(json.dumps(result, ensure_ascii=False, indent=2))
+            print("✓ Problem ACCEPTED")
+            print(f"  Cleaned: {result['cleaned_text'][:60]}...")
+            print(f"  Category: {result.get('category', 'N/A')}")
+            print(f"  Construction Difficulty: {result.get('difficulty', 'N/A')}/5")
+            print(f"  Objects: {len(result.get('required_objects', {}).get('points', []))} points")
+            print(f"  Conditions: {len(result.get('verification_conditions', []))} conditions")
+            passed += 1
+    
+    print(f"\n{'='*70}")
+    print(f"SUMMARY: {passed} passed, {failed} rejected out of {len(test_problems)} problems")
+    print("="*70)
 

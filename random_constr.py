@@ -1,7 +1,55 @@
 import os
+import re
 import matplotlib.pyplot as plt
 import numpy as np
 from geo_types import *
+
+
+def parse_trig_function(token: str) -> float:
+    """
+    Parse trigonometric function expressions like cos(30°), sin(45°), tan(60°).
+    
+    Supports:
+    - cos(30°), sin(45°), tan(60°)  - degree input
+    - cos(1.5708rad), sin(0.5rad), tan(0.785rad)  - radian input
+    - cos(30), sin(45), tan(60)  - degree input (default)
+    
+    Returns:
+        Calculated float value, or None if not a trig function
+    """
+    # Pattern: func(value[°|rad|r])
+    trig_pattern = r'^(cos|sin|tan)\(([+-]?[\d.]+)(°|deg|rad|r)?\)$'
+    match = re.match(trig_pattern, token, re.IGNORECASE)
+    
+    if not match:
+        return None
+    
+    func_name = match.group(1).lower()
+    value_str = match.group(2)
+    unit = match.group(3)
+    
+    try:
+        value = float(value_str)
+    except ValueError:
+        return None
+    
+    # Convert to radians if needed
+    if unit in ('°', 'deg', None):
+        # Default is degree
+        value_rad = np.radians(value)
+    else:
+        # Already in radians
+        value_rad = value
+    
+    # Calculate trig function
+    if func_name == 'cos':
+        return float(np.cos(value_rad))
+    elif func_name == 'sin':
+        return float(np.sin(value_rad))
+    elif func_name == 'tan':
+        return float(np.tan(value_rad))
+    
+    return None
 
 type_to_shortcut = {
     int       : 'i',
@@ -171,10 +219,24 @@ def parse_command(line, element_dict, line_number=None):
         input_labels = labels[:arrow_index]
         output_labels = labels[arrow_index+1:]
         
-        # 숫자 리터럴을 자동으로 element로 변환
+        # 숫자 리터럴, 삼각함수를 자동으로 element로 변환
         input_elements = []
         for label in input_labels:
-            # 각도 표기 확인 (degree: °, radian: rad/r)
+            # 1. 먼저 삼각함수 표현인지 확인 (cos, sin, tan)
+            trig_value = parse_trig_function(label)
+            if trig_value is not None:
+                # 삼각함수 값을 float로 저장
+                auto_label = f"_auto_{len(element_dict)}"
+                while auto_label in element_dict:
+                    auto_label = f"_auto_{len(element_dict)}_{np.random.randint(10000)}"
+                
+                element = Element(auto_label, element_dict)
+                element.data = trig_value
+                element.command = None
+                input_elements.append(element)
+                continue
+            
+            # 2. 각도 표기 확인 (degree: °, radian: rad/r)
             is_degree = label.endswith('°')
             is_radian = label.endswith('rad') or label.endswith('r')
             
@@ -188,7 +250,7 @@ def parse_command(line, element_dict, line_number=None):
                 else:
                     clean_label = label[:-1]  # r 제거
             
-            # 숫자인지 확인
+            # 3. 숫자인지 확인
             try:
                 value = float(clean_label)
                 # 자동 레이블 생성 (충돌 방지)

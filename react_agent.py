@@ -124,7 +124,8 @@ class ReActAgent:
     def __init__(self, model: str = "gpt-4o", max_iterations: int = 10,
                  save_images: bool = True, image_dir: str = "agent_images",
                  log_dir: str = "agent_logs",
-                 verbose: bool = False):
+                 verbose: bool = False, use_vision: bool = True,
+                 run_id: Optional[str] = None):
         """
         Initialize ReAct agent.
         
@@ -135,18 +136,25 @@ class ReActAgent:
             image_dir: Directory for images
             log_dir: Directory for logs
             verbose: Print detailed logs
+            use_vision: Whether to send rendered images to LLM (for vision comparison)
+            run_id: Custom run identifier for logging (default: timestamp)
         """
         self.model = model
         self.max_iterations = max_iterations
         self.save_images = save_images
         self.verbose = verbose
+        self.use_vision = use_vision
         
         # Initialize components
         self.multimodal = MultimodalInterface(model=model)
         self.executor = DSLExecutor(save_images=save_images, image_dir=image_dir)
         self.validator = DSLValidator()
-        self.logger = AgentLogger(log_dir=log_dir, save_images=save_images)
+        self.logger = AgentLogger(log_dir=log_dir, save_images=save_images, run_id=run_id)
         self.hint_manager = ErrorHintManager()
+        
+        # Store run info
+        self.run_id = self.logger.run_id
+        self.run_dir = self.logger.run_dir
         
         # Load prompts
         self.system_prompt = self._load_prompt("system_prompt.txt")
@@ -328,7 +336,8 @@ class ReActAgent:
             "summary": memory.get_summary(),
             "session_id": session_id,
             "log_file": log_summary.get("log_file"),
-            "images": log_summary.get("images", [])
+            "images": log_summary.get("images", []),
+            "validation_result": validation_result  # Include validation result for error checking
         }
         
         # Save memory
@@ -371,31 +380,35 @@ class ReActAgent:
                 history=full_history
             )
         
-        # Get recent images (last 2-3 iterations)
+        # Get recent images (last 2-3 iterations) - only if vision is enabled
         recent_images = []
-        max_images = 1
-        for step in reversed(memory.steps[-max_images:]):
-            if step.observation.has_image and step.observation.image_base64:
-                recent_images.append({
-                    'iteration': step.iteration,
-                    'success': step.observation.success,
-                    'image': step.observation.image_base64
-                })
-        recent_images.reverse()  # 시간순으로 정렬
+        if self.use_vision:
+            max_images = 1
+            for step in reversed(memory.steps[-max_images:]):
+                if step.observation.has_image and step.observation.image_base64:
+                    recent_images.append({
+                        'iteration': step.iteration,
+                        'success': step.observation.success,
+                        'image': step.observation.image_base64
+                    })
+            recent_images.reverse()  # 시간순으로 정렬
         
         # Create multimodal message with context
         message_text = prompt
-        if recent_images:
+        if recent_images and self.use_vision:
             message_text += "\n\n**Recent Rendered Images (for comparison):**\n"
             for img_info in recent_images:
                 status = "✓ Success" if img_info['success'] else "✗ Failed"
                 message_text += f"- Iteration {img_info['iteration']}: {status}\n"
+        elif not self.use_vision:
+            message_text += "\n\n**Note: Vision is disabled. No images will be shown.**\n"
         
         message = MultimodalMessage(text=message_text)
         
-        # Add all recent images
-        for img_info in recent_images:
-            message.add_image(img_info['image'])
+        # Add all recent images only if vision is enabled
+        if self.use_vision:
+            for img_info in recent_images:
+                message.add_image(img_info['image'])
         
         # Get response from LLM
         response = self.multimodal.send_message(
@@ -624,7 +637,7 @@ class ReActAgent:
         
         try:
             validation = self.validator.validate(dsl_file, problem)
-            print(validation)
+            # print(validation)
             # Extract detailed messages from validation details
             failed_conditions_with_messages = []
             if validation.details and 'condition_details' in validation.details:
@@ -636,6 +649,9 @@ class ReActAgent:
                         # Combine condition info with the validation message
                         failed_cond = dict(condition)
                         failed_cond['validation_message'] = message
+                        # Include error_type if present
+                        if 'error_type' in detail:
+                            failed_cond['error_type'] = detail['error_type']
                         failed_conditions_with_messages.append(failed_cond)
             else:
                 # Fallback to basic failed conditions
@@ -647,7 +663,9 @@ class ReActAgent:
                 "object_score": validation.object_score,
                 "condition_score": validation.condition_score,
                 "missing_objects": validation.missing_objects,
-                "failed_conditions": failed_conditions_with_messages
+                "failed_conditions": failed_conditions_with_messages,
+                "has_dataset_error": validation.has_dataset_error,
+                "dataset_error_types": validation.dataset_error_types
             }
         finally:
             if os.path.exists(dsl_file):

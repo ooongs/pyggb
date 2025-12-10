@@ -11,6 +11,12 @@ __pycache__/
 agent_images/
 agent_logs/
 agent_results.json
+ggb-benchmark/
+test_images/
+test_vision/
+patrik/
+ground_truth/
+benchmark_results/
 
 # Image files
 *.png

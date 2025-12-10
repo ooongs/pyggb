@@ -40,3 +40,6 @@ intersect : line1 line2 -> P  # Use lines/circles
 **Tip**: Check what type of input each command expects.
 
 
+
+
+

@@ -27,3 +27,6 @@ polygon : A B C D -> quad side_d side_c side_b side_a
 **Rule**: For n-vertex polygon → n+1 outputs (polygon + n sides)
 
 
+
+
+

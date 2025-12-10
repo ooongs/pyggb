@@ -36,10 +36,10 @@ class Point:
 
 class Line:
     def __init__(self, n, c):
-        self.n = np.array(n)
+        self.n = np.array(n, dtype=float)  # Ensure float for division
         assert((self.n != 0).any())
-        self.c = c
-        norm = np.linalg.norm(n)
+        self.c = float(c)  # Ensure float for division
+        norm = np.linalg.norm(self.n)
         if not np.isclose(norm, 1):
             self.n /= norm
             self.c /= norm
@@ -114,6 +114,7 @@ class Segment(Line):
     def scale(self, ratio):
         self.c *= ratio
         self.end_points *= ratio
+        self.length *= ratio  # Update length after scaling
     def important_points(self):
         return [np.average(self.end_points, axis = 0)]
 
@@ -237,6 +238,7 @@ class Circle:
     def scale(self, ratio):
         self.c *= ratio
         self.r *= ratio
+        self.r_squared = self.r**2  # Update r_squared after scaling
     def important_points(self):
         return [self.c]
 

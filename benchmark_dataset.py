@@ -105,6 +105,7 @@ class BenchmarkDataset:
         """
         self.problems: List[BenchmarkProblem] = []
         self.dataset_path = dataset_path
+        self.metadata: Dict[str, Any] = {}  # Metadata from new dataset format
         
         if dataset_path and os.path.exists(dataset_path):
             self.load(dataset_path)
@@ -133,12 +134,25 @@ class BenchmarkDataset:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Handle both single problem and list of problems
-        if isinstance(data, list):
+        # Handle multiple formats:
+        # 1. New format: {"metadata": {...}, "problems": [...]}
+        # 2. Old format (list): [problem1, problem2, ...]
+        # 3. Single problem: {problem}
+        
+        if isinstance(data, dict):
+            if "problems" in data:
+                # New format with metadata and problems array
+                problems_list = data.get("problems", [])
+                self.metadata = data.get("metadata", {})
+                for item in problems_list:
+                    self.problems.append(BenchmarkProblem.from_dict(item))
+            else:
+                # Single problem dict
+                self.problems.append(BenchmarkProblem.from_dict(data))
+        elif isinstance(data, list):
+            # Old format: list of problems
             for item in data:
                 self.problems.append(BenchmarkProblem.from_dict(item))
-        else:
-            self.problems.append(BenchmarkProblem.from_dict(data))
     
     def save(self, output_path: str, single_file: bool = True):
         """
