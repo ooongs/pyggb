@@ -1,7 +1,0 @@
-point :  -> A
-point :  -> B
-circle : A B -> c
-line : A B -> a
-mirror : B c -> B'
-equality : B B' -> expr0
-prove : expr0 -> b

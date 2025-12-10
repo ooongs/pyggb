@@ -1,4 +1,0 @@
-point :  -> A
-point :  -> B
-equality : A B -> expr0
-prove : expr0 -> a
