@@ -154,3 +154,4 @@ def join_from_root(*parts: str) -> str:
         Absolute path string.
     """
     return str(get_project_root().joinpath(*parts))
+

@@ -9,3 +9,4 @@ from src.interfaces.multimodal_interface import MultimodalInterface, MultimodalM
 __all__ = [
     "MultimodalInterface", "MultimodalMessage",
 ]
+

@@ -287,3 +287,4 @@ line : D_parallel E -> line_DE_parallel
         print("\n✓ DSL execution successful!")
     else:
         print(f"\n✗ DSL execution failed: {result.error}")
+

@@ -439,3 +439,4 @@ if __name__ == "__main__":
         if not filename.endswith(".txt"): continue
         construction.load(os.path.join(datadir, filename))
         construction.test()
+

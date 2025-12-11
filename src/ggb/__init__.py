@@ -9,3 +9,4 @@ Provides tools for reading and processing GeoGebra files.
 # from src.ggb.read_ggb import *
 
 __all__ = []
+

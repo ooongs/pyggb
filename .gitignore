@@ -15,7 +15,6 @@ ggb-benchmark/
 test_images/
 test_vision/
 patrik/
-data/
 benchmark_results/
 
 # Image files
