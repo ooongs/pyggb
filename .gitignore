@@ -16,6 +16,7 @@ test_images/
 test_vision/
 patrik/
 benchmark_results/
+ground_truth/
 
 # Image files
 *.png
