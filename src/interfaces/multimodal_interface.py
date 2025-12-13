@@ -155,7 +155,7 @@ class MultimodalInterface:
                 content.append({
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:image/png;base,{img_base64}",
+                        "url": f"data:image/png;base64,{img_base64}",
                         "detail": "high"  # Use high detail for geometric precision
                     }
                 })
