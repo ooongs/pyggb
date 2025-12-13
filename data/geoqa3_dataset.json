@@ -665,76 +665,6 @@
       "cleaned_text": "AB∥CD, CP交AB于O, AO=PO, ∠C=50°"
     },
     {
-      "id": "379",
-      "subject": "一艘轮船从港口O沿北偏西20°的方向行60海里到达点M处, 渔船已航行到与港口O相距80海里的点N处, M、N两点相距100海里",
-      "required_objects": {
-        "points": [
-          "O",
-          "M",
-          "N",
-          "X"
-        ],
-        "segments": [
-          [
-            "O",
-            "M"
-          ],
-          [
-            "O",
-            "N"
-          ],
-          [
-            "M",
-            "N"
-          ]
-        ],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "O",
-              "M",
-              "X"
-            ]
-          ],
-          "value": 20
-        },
-        {
-          "type": "segment_length",
-          "segment": [
-            "O",
-            "M"
-          ],
-          "value": 60
-        },
-        {
-          "type": "segment_length",
-          "segment": [
-            "O",
-            "N"
-          ],
-          "value": 80
-        },
-        {
-          "type": "segment_length",
-          "segment": [
-            "M",
-            "N"
-          ],
-          "value": 100
-        }
-      ],
-      "category": "Measurement & Ratios",
-      "difficulty": 2,
-      "original_text": "一艘轮船和一艘渔船同时沿各自的航向从港口O出发,如图所示,轮船从港口O沿北偏西20°的方向行60海里到达点M处,同一时刻渔船已航行到与港口O相距80海里的点N处,若M、N两点相距100海里,则∠NOF的度数为()",
-      "cleaned_text": "一艘轮船从港口O沿北偏西20°的方向行60海里到达点M处, 渔船已航行到与港口O相距80海里的点N处, M、N两点相距100海里"
-    },
-    {
       "id": "380",
       "subject": "直线AB,CD相交于点O,EO⊥CD于点O,∠AOE=36°",
       "required_objects": {
@@ -823,60 +753,6 @@
       "difficulty": 2,
       "original_text": "如图,直线AB,CD相交于点O,EO⊥CD于点O,∠AOE=36°,则∠BOD=()",
       "cleaned_text": "直线AB,CD相交于点O,EO⊥CD于点O,∠AOE=36°"
-    },
-    {
-      "id": "384",
-      "subject": "楼梯高BC=3m,斜边AC=5m",
-      "required_objects": {
-        "points": [
-          "A",
-          "B",
-          "C"
-        ],
-        "segments": [
-          [
-            "B",
-            "C"
-          ],
-          [
-            "A",
-            "C"
-          ]
-        ],
-        "lines": [],
-        "circles": [],
-        "polygons": [
-          [
-            "A",
-            "B",
-            "C"
-          ]
-        ]
-      },
-      "verification_conditions": [
-        {
-          "type": "segment_length",
-          "segment": [
-            "B",
-            "C"
-          ],
-          "value": 3,
-          "unit": "m"
-        },
-        {
-          "type": "segment_length",
-          "segment": [
-            "A",
-            "C"
-          ],
-          "value": 5,
-          "unit": "m"
-        }
-      ],
-      "category": "Triangle Properties & Constructions",
-      "difficulty": 1,
-      "original_text": "如图所示:是一段楼梯,高BC是3m,斜边AC是5m,如果在楼梯上铺地毯,那么至少需要地毯()",
-      "cleaned_text": "楼梯高BC=3m,斜边AC=5m"
     },
     {
       "id": "390",
@@ -2286,22 +2162,6 @@
       "cleaned_text": "∠AOB=100°",
       "category": "Angle Relationships",
       "difficulty": 1
-    },
-    {
-      "id": "26",
-      "subject": "在平地上种植树木时,要为4m．如果在坡度为0.75的山坡上种树,也要",
-      "required_objects": {
-        "points": [],
-        "segments": [],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [],
-      "original_text": "如图,在平地上种植树木时,要求株距(相邻两树间的水平距离)为4m．如果在坡度为0.75的山坡上种树,也要求株距为4m,那么相邻两树间的坡面距离为()",
-      "cleaned_text": "在平地上种植树木时,要为4m．如果在坡度为0.75的山坡上种树,也要",
-      "category": "Measurement & Ratios",
-      "difficulty": 2
     },
     {
       "id": "27",
@@ -4902,22 +4762,6 @@
       "difficulty": 2
     },
     {
-      "id": "88",
-      "subject": "在某次活动课中,甲、乙两个学习小组于同一时刻在阳光下对校园中一些物体进行了测量.下面是他们通过测量得到的一些信息:1,甲组测得一根直立于平地,长为80cm的竹竿的影长为60cm.2,乙组测得学校旗杆的影长为900cm.",
-      "required_objects": {
-        "points": [],
-        "segments": [],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [],
-      "original_text": "在某次活动课中,甲、乙两个学习小组于同一时刻在阳光下对校园中一些物体进行了测量.下面是他们通过测量得到的一些信息:如图1,甲组测得一根直立于平地,长为80cm的竹竿的影长为60cm.如图2,乙组测得学校旗杆的影长为900cm.则旗杆的长为()",
-      "cleaned_text": "在某次活动课中,甲、乙两个学习小组于同一时刻在阳光下对校园中一些物体进行了测量.下面是他们通过测量得到的一些信息:1,甲组测得一根直立于平地,长为80cm的竹竿的影长为60cm.2,乙组测得学校旗杆的影长为900cm.",
-      "category": "Measurement & Ratios",
-      "difficulty": 1
-    },
-    {
       "id": "89",
       "subject": "四边形ABCD为⊙O的内接四边形,若∠BCD=110°",
       "required_objects": {
@@ -5232,121 +5076,6 @@
       "difficulty": 2
     },
     {
-      "id": "95",
-      "subject": "在直径为200cm的圆柱形油槽内装入一些油以后,截面．若油面的宽AB=160cm",
-      "required_objects": {
-        "points": [
-          "A",
-          "B"
-        ],
-        "segments": [
-          [
-            "A",
-            "B"
-          ]
-        ],
-        "lines": [],
-        "circles": [
-          {
-            "center": "O",
-            "radius_point": null
-          }
-        ],
-        "polygons": []
-      },
-      "verification_conditions": [],
-      "original_text": "在直径为200cm的圆柱形油槽内装入一些油以后,截面如图．若油面的宽AB=160cm,则油的最大深度为()",
-      "cleaned_text": "在直径为200cm的圆柱形油槽内装入一些油以后,截面．若油面的宽AB=160cm",
-      "category": "Measurement & Ratios",
-      "difficulty": 1
-    },
-    {
-      "id": "97",
-      "subject": "一条公路修到湖边时,需拐弯绕湖而过,如果第一次拐的角∠A是120°,第二次拐的角∠B是150°,第三次拐的角是∠C,这时的道路恰好和第一次拐弯之前的道路平行",
-      "required_objects": {
-        "points": [
-          "A",
-          "B",
-          "C",
-          "D",
-          "E",
-          "F"
-        ],
-        "segments": [],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "B",
-              "A",
-              "C"
-            ]
-          ],
-          "value": 120
-        },
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "A",
-              "B",
-              "C"
-            ]
-          ],
-          "value": 150
-        },
-        {
-          "type": "parallel",
-          "objects": [
-            [
-              "C",
-              "D"
-            ],
-            [
-              "E",
-              "F"
-            ]
-          ]
-        }
-      ],
-      "original_text": "如图,一条公路修到湖边时,需拐弯绕湖而过,如果第一次拐的角∠A是120°,第二次拐的角∠B是150°,第三次拐的角是∠C,这时的道路恰好和第一次拐弯之前的道路平行,则∠C的大小是()",
-      "cleaned_text": "一条公路修到湖边时,需拐弯绕湖而过,如果第一次拐的角∠A是120°,第二次拐的角∠B是150°,第三次拐的角是∠C,这时的道路恰好和第一次拐弯之前的道路平行",
-      "category": "Angle Relationships",
-      "difficulty": 3
-    },
-    {
-      "id": "98",
-      "subject": "圆锥模具的母线长为10cm,底面半径为5cm",
-      "required_objects": {
-        "points": [],
-        "segments": [],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [
-        {
-          "type": "distance_equals",
-          "segment": [],
-          "value": 10.0
-        },
-        {
-          "type": "distance_equals",
-          "segment": [],
-          "value": 5.0
-        }
-      ],
-      "original_text": "如图,圆锥模具的母线长为10cm,底面半径为5cm,则这个圆锥模具的侧面积是()",
-      "cleaned_text": "圆锥模具的母线长为10cm,底面半径为5cm",
-      "category": "Measurement & Ratios",
-      "difficulty": 1
-    },
-    {
       "id": "99",
       "subject": "要测量的A、C两点被池塘隔开,李师傅在AC外任选一点B,连接BA和BC,分别取BA和BC的中点E、F,量得E、F两点间距离等于23米",
       "required_objects": {
@@ -5519,7 +5248,7 @@
     },
     {
       "id": "101",
-      "subject": "BD平分∠ABC,CD∥AB,若∠BCD=70°",
+      "subject": "BD平分∠ABC,CD∥AB,∠BCD=70°",
       "required_objects": {
         "points": [
           "A",
@@ -6718,29 +6447,6 @@
       "cleaned_text": "△ABC≌△DEF,点A与D,B与E分别是对应顶点,且测得BC=5cm,BF=7cm",
       "category": "Similarity & Congruence",
       "difficulty": 2
-    },
-    {
-      "id": "122",
-      "subject": "A、B、C、D、E、F是平面上的6个点",
-      "required_objects": {
-        "points": [
-          "A",
-          "B",
-          "C",
-          "D",
-          "E",
-          "F"
-        ],
-        "segments": [],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [],
-      "original_text": "如图,A、B、C、D、E、F是平面上的6个点,则∠A+∠B+∠C+∠D+∠E+∠F的度数是()",
-      "cleaned_text": "A、B、C、D、E、F是平面上的6个点",
-      "category": "Basic Constructions",
-      "difficulty": 1
     },
     {
       "id": "123",
@@ -9294,35 +9000,6 @@
       "difficulty": 2
     },
     {
-      "id": "170",
-      "subject": "铁道口的栏杆短臂OA长1m,长臂OB长8m．当短臂外端A下降0.5m时,长臂外端B升高()",
-      "required_objects": {
-        "points": [
-          "O",
-          "A",
-          "B"
-        ],
-        "segments": [
-          [
-            "O",
-            "A"
-          ],
-          [
-            "O",
-            "B"
-          ]
-        ],
-        "lines": [],
-        "circles": [],
-        "polygons": []
-      },
-      "verification_conditions": [],
-      "original_text": "如图,铁道口的栏杆短臂OA长1m,长臂OB长8m．当短臂外端A下降0.5m时,长臂外端B升高()",
-      "cleaned_text": "铁道口的栏杆短臂OA长1m,长臂OB长8m．当短臂外端A下降0.5m时,长臂外端B升高()",
-      "category": "Measurement & Ratios",
-      "difficulty": 1
-    },
-    {
       "id": "171",
       "subject": "AB是⊙O的直径,C,D是⊙O上的两点,若∠ABC=70°",
       "required_objects": {
@@ -9488,7 +9165,7 @@
     },
     {
       "id": "173",
-      "subject": "在△ABC中,AB=AD=DC,∠B=70°",
+      "subject": "在△ABC中,D在边BC上,且AB=AD=DC,∠B=70°",
       "required_objects": {
         "points": [
           "A",
@@ -9561,6 +9238,14 @@
             ]
           ],
           "value": 70
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "B",
+            "C"
+          ]
         },
         {
           "type": "triangle_valid",

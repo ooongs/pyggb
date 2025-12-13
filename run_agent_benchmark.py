@@ -136,35 +136,46 @@ class DetailedMetrics:
         if memory_data and "steps" in memory_data:
             hallucination_count = 0
             hallucination_errors = []
-            last_error_step = None
+            first_error_step = None  # Track when error sequence started
+            in_error_sequence = False
             recovery_steps = []
-            
+
             for step in memory_data["steps"]:
                 obs = step.get("observation", {})
-                
-                # Count DSL execution errors (hallucinations)
-                if not obs.get("success", True) and obs.get("error"):
+                current_step = step.get("iteration")
+
+                # Check if this is a DSL execution error (hallucination)
+                # NOT a validation failure (condition/object errors)
+                has_dsl_error = not obs.get("success", True) and obs.get("error")
+
+                if has_dsl_error:
                     hallucination_count += 1
                     error_msg = obs.get("error", "")
                     error_type = self._categorize_error(error_msg)
-                    
+
                     hallucination_errors.append({
-                        "step": step.get("iteration"),
+                        "step": current_step,
                         "error_type": error_type,
                         "error_message": error_msg[:200]
                     })
-                    
+
                     # Track error types
                     self.hallucination_error_types[error_type] = \
                         self.hallucination_error_types.get(error_type, 0) + 1
-                    
-                    last_error_step = step.get("iteration")
-                
+
+                    # Mark start of error sequence
+                    if not in_error_sequence:
+                        first_error_step = current_step
+                        in_error_sequence = True
+
                 # Track recovery from hallucination
-                elif obs.get("success", False) and last_error_step is not None:
-                    recovery = step.get("iteration") - last_error_step
+                # Success means: DSL execution succeeded (may still fail validation)
+                elif obs.get("success", True) and in_error_sequence:
+                    # Recovered from error sequence
+                    recovery = current_step - first_error_step
                     recovery_steps.append(recovery)
-                    last_error_step = None
+                    in_error_sequence = False
+                    first_error_step = None
                 
                 # Extract validation results
                 validation = obs.get("validation_result")
