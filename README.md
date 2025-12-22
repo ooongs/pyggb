@@ -1,4 +1,4 @@
-# PyGGB - Geometry Construction from Text
+# GeoBuildBench - Geometry Construction from Text
 
 Python tool for generating geometric constructions from problem descriptions using multimodal LLMs.
 
