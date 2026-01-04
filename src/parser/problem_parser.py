@@ -408,7 +408,6 @@ Return JSON:
         // Segment/Length conditions
         {{"type": "segment_equality", "segments": [["A", "B"], ["C", "D"]]}},
         {{"type": "distance_equals", "segment": ["A", "B"], "value": 5}},
-        {{"type": "segment_length", "segment": ["A", "B"], "value": 10}},
         {{"type": "perimeter", "polygon": ["A", "B", "C"], "value": 20}},
 
         // Sum of segments and ratio conditions

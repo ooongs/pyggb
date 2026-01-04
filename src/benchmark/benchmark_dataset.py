@@ -94,10 +94,7 @@ class BenchmarkDataset:
         "concurrent", "point_on_line", "point_on_circle", "angle_bisector",
         "point_on_segment", "midpoint_of", "distance_equals", "triangle_valid",
         "point_between", "concentric_circles",
-        # New types from dataset
         "angle_sum", "isosceles_triangle", "right_triangle",
-        "segment_equal", "equal_length",  # Aliases for segment_equality
-        "length", "length_value", "segment_length", "length_equal",  # Aliases for distance_equals
         "perpendicular_bisector", "point_on_line_extension", "point_on_segment_extension",
         "same_side", "point_inside_circle",
         "tangent", "tangent_line", "line_is_tangent", "tangent_at_point", "tangent_point",

@@ -262,9 +262,10 @@
       "1191"
     ],
     "error_ids": [],
-    "last_fixed": "2026-01-04T22:49:13.755880",
+    "last_fixed": "2026-01-04T20:27:31.011613",
     "fixes_applied": {
-      "circle_radius_key": 1
+      "point_on_circle": 1,
+      "tangent": 3
     }
   },
   "problems": [
@@ -14113,8 +14114,7 @@
         ],
         "circles": [
           {
-            "center": "O",
-            "radius_point": "C"
+            "center": "O"
           }
         ],
         "polygons": [
@@ -22826,7 +22826,7 @@
         "circles": [
           {
             "center": "O",
-            "radius_length": 6
+            "radius": 6
           }
         ],
         "polygons": [
@@ -31909,8 +31909,7 @@
         ],
         "circles": [
           {
-            "center": "O",
-            "radius_point": "E"
+            "center": "O"
           }
         ],
         "polygons": []

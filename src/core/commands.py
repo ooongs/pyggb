@@ -171,7 +171,7 @@ def circle_ps(p, s):
     return gt.Circle(p.a, s.length)
 
 def circle_pi(p, radius):
-    """중심 p, 반지름 radius(정수)인 원 생성"""
+    """create a circle with center p and radius radius (integer)"""
     return gt.Circle(p.a, float(radius))
 
 def contained_by_pc(point, by_circle):
@@ -497,7 +497,7 @@ def point_():
     return gt.Point(np.random.normal(size = 2))
 
 def point_ii(x, y):
-    """고정된 좌표 (x, y)에 점 생성"""
+    """create a point at fixed coordinates (x, y)"""
     return gt.Point([float(x), float(y)])
 
 def point_mm(mx, my):

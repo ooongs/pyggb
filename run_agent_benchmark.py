@@ -13,6 +13,7 @@ from typing import List, Dict, Any, Optional
 import numpy as np
 from src.benchmark.benchmark_dataset import BenchmarkDataset
 from src.agent.react_agent import ReActAgent
+from src.agent.agent_memory import AgentMemory
 from src.dsl.dsl_validator import ValidationErrorLogger, set_validation_error_logger
 from src.utils import get_data_dir, get_output_dir
 
@@ -404,30 +405,45 @@ class AgentBenchmarkRunner:
         # Set as global logger so DSLValidator can use it
         set_validation_error_logger(self.validation_error_logger)
     
-    def run_single(self, problem_id: str, dataset_path: str) -> Dict[str, Any]:
+    def run_single(
+        self,
+        problem_id: str,
+        dataset_path: str,
+        resume_memory: Optional['AgentMemory'] = None,
+        start_iteration: int = 1,
+        reexecute_last_iteration: bool = False
+    ) -> Dict[str, Any]:
         """
         Run agent on a single problem.
-        
+
         Args:
             problem_id: Problem ID to solve
             dataset_path: Path to benchmark dataset
-            
+            resume_memory: Pre-loaded memory to resume from (optional)
+            start_iteration: Iteration number to start from (default: 1)
+            reexecute_last_iteration: Re-execute DSL from last loaded iteration (default: False)
+
         Returns:
             Results dictionary
         """
         dataset = BenchmarkDataset(dataset_path)
         problem = dataset.get_problem(problem_id)
-        
+
         if problem is None:
             raise ValueError(f"Problem {problem_id} not found in dataset")
-        
+
         print(f"\nSolving Problem: {problem.id}")
         print(f"Problem: {problem.subject[:100]}...")
         print(f"Model: {self.model}")
         print(f"Max Iterations: {self.max_iterations}")
         print("="*70)
-        
-        results = self.agent.solve(problem)
+
+        results = self.agent.solve(
+            problem,
+            resume_memory=resume_memory,
+            start_iteration=start_iteration,
+            reexecute_last_iteration=reexecute_last_iteration
+        )
         
         # Load memory for detailed analysis
         memory_data = None
@@ -997,6 +1013,26 @@ def main():
         help="Path to text file containing additional prompt (hints/tips) to append to system prompt"
     )
 
+    parser.add_argument(
+        "--resume-memory",
+        type=str,
+        default=None,
+        help="Path to memory JSON file to resume from (e.g., agent_images/{problem_id}_memory.json)"
+    )
+
+    parser.add_argument(
+        "--resume-from-iteration",
+        type=int,
+        default=None,
+        help="Load memory up to this iteration and start from next iteration (requires --resume-memory)"
+    )
+
+    parser.add_argument(
+        "--reexecute-last",
+        action="store_true",
+        help="Re-execute DSL code from the last loaded iteration before continuing (requires --resume-memory)"
+    )
+
     args = parser.parse_args()
     
     # Debug mode settings
@@ -1047,6 +1083,48 @@ def main():
     print(f"Vision Mode: {'✓ Enabled' if use_vision else '✗ Disabled'}")
     print(f"{'='*70}\n")
 
+    # Load resume memory if provided
+    resume_memory = None
+    resume_start_iteration = 1
+
+    if args.resume_memory:
+        # Validate file exists
+        if not os.path.exists(args.resume_memory):
+            print(f"ERROR: Memory file not found: {args.resume_memory}")
+            return 1
+
+        try:
+            # Load memory (truncated to specific iteration if specified)
+            max_iter = args.resume_from_iteration if args.resume_from_iteration else None
+            resume_memory = AgentMemory.load_from_file(args.resume_memory, max_iteration=max_iter)
+
+            # Calculate start iteration
+            if args.resume_from_iteration:
+                resume_start_iteration = args.resume_from_iteration + 1
+            else:
+                resume_start_iteration = len(resume_memory.steps) + 1
+
+            print(f"\n{'='*70}")
+            print(f"📂 RESUME MODE")
+            print(f"{'='*70}")
+            print(f"Memory file: {args.resume_memory}")
+            print(f"Loaded steps: {len(resume_memory.steps)}")
+            if args.resume_from_iteration:
+                print(f"Truncated to iteration: {args.resume_from_iteration}")
+            if args.reexecute_last and len(resume_memory.steps) > 0:
+                print(f"🔄 Will re-execute iteration {len(resume_memory.steps)} DSL code")
+            print(f"Will start from iteration: {resume_start_iteration}")
+            print(f"{'='*70}\n")
+        except FileNotFoundError:
+            print(f"ERROR: Memory file not found: {args.resume_memory}")
+            return 1
+        except json.JSONDecodeError as e:
+            print(f"ERROR: Invalid JSON in memory file: {e}")
+            return 1
+        except Exception as e:
+            print(f"ERROR: Failed to load memory: {e}")
+            return 1
+
     # Initialize runner
     runner = AgentBenchmarkRunner(
         model=args.model,
@@ -1056,11 +1134,22 @@ def main():
         use_vision=use_vision,
         additional_prompt=additional_prompt
     )
-    
+
+    # Validate reexecute-last flag
+    if args.reexecute_last and not args.resume_memory:
+        print("ERROR: --reexecute-last requires --resume-memory")
+        return 1
+
     # Run
     if args.problem_id:
         # Single problem mode
-        results = runner.run_single(args.problem_id, args.dataset)
+        results = runner.run_single(
+            args.problem_id,
+            args.dataset,
+            resume_memory=resume_memory,
+            start_iteration=resume_start_iteration,
+            reexecute_last_iteration=args.reexecute_last
+        )
         
         # Save single result with metrics
         output_data = {

@@ -1,0 +1,259 @@
+{
+  "metadata": {
+    "timestamp": "2025-12-24T16:58:34.525108",
+    "model": "gpt-5.1",
+    "problem_id": "1",
+    "use_vision": true,
+    "vision_mode": "with_vision"
+  },
+  "result": {
+    "problem_id": "1",
+    "success": true,
+    "iterations": 5,
+    "final_dsl": "# AB horizontal\npoint : -5 0 -> A\npoint : 5 0 -> B\nsegment : A B -> AB\nline : A B -> line_AB\n\n# CD horizontal and parallel to AB\npoint : -10 -5 -> C\npoint : 10 -5 -> D\nsegment : C D -> CD\nline : C D -> line_CD\n\n# E on AB\npoint : 0 0 -> E\nsegment : B E -> BE\n\n# F on CD, chosen so that ∠EFG can be 50°\npoint : -4.196 -5 -> F\nsegment : C F -> CF\nsegment : F D -> FD\nsegment : E F -> EF\nline : E F -> line_EF\n\n# Angle bisector of ∠BEF through E\nangular_bisector : B E F -> bis_E\n\n# G is intersection of the bisector with CD\nintersect : bis_E line_CD -> G\nsegment : C G -> CG\nsegment : G D -> GD\nsegment : E G -> EG\nline : E G -> line_EG\n\n# Connect F and G to realize ∠EFG\nsegment : F G -> FG",
+    "summary": {
+      "problem_id": "1",
+      "problem_text": "直角三角形ABC，在斜边AB上有一点P，令AB长3，CP长1",
+      "total_steps": 5,
+      "successful_executions": 5,
+      "duration_seconds": 46.522439,
+      "final_success": true,
+      "has_final_dsl": true
+    },
+    "session_id": "1_gpt-5.1_vision_20251224_165612",
+    "log_file": "agent_logs/gpt-5.1_vision_20251224_165612/sessions/1_gpt-5.1_vision.log",
+    "images": [
+      "agent_logs/gpt-5.1_vision_20251224_165612/images/1_gpt-5.1_vision_iter3.png",
+      "agent_logs/gpt-5.1_vision_20251224_165612/images/1_gpt-5.1_vision_iter4.png",
+      "agent_logs/gpt-5.1_vision_20251224_165612/images/1_gpt-5.1_vision_iter5.png"
+    ],
+    "validation_result": {
+      "success": true,
+      "total_score": 1.0,
+      "object_score": 1.0,
+      "condition_score": 1.0,
+      "missing_objects": {
+        "points": [],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "failed_conditions": [],
+      "has_dataset_error": false,
+      "dataset_error_types": [],
+      "details": {
+        "object_details": {
+          "total_required": 16,
+          "total_found": 16,
+          "validation_mode": "hybrid"
+        },
+        "found_objects": {
+          "points": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G"
+          ],
+          "segments": [
+            [
+              "A",
+              "B"
+            ],
+            [
+              "C",
+              "D"
+            ],
+            [
+              "E",
+              "F"
+            ],
+            [
+              "B",
+              "E"
+            ],
+            [
+              "E",
+              "G"
+            ],
+            [
+              "C",
+              "D"
+            ]
+          ],
+          "lines": [
+            [
+              "A",
+              "B"
+            ],
+            [
+              "C",
+              "D"
+            ],
+            [
+              "E",
+              "F"
+            ]
+          ],
+          "circles": [],
+          "polygons": []
+        },
+        "condition_details": [
+          {
+            "condition": {
+              "type": "parallel",
+              "objects": [
+                [
+                  "A",
+                  "B"
+                ],
+                [
+                  "C",
+                  "D"
+                ]
+              ]
+            },
+            "passed": true,
+            "message": "Lines are parallel"
+          },
+          {
+            "condition": {
+              "type": "angle_bisector",
+              "line": [
+                "E",
+                "G"
+              ],
+              "angle_points": [
+                "B",
+                "E",
+                "F"
+              ]
+            },
+            "passed": true,
+            "message": "Bisector creates angles of 295.00° and 295.00°"
+          },
+          {
+            "condition": {
+              "type": "angle_value",
+              "points": [
+                [
+                  "E",
+                  "F",
+                  "G"
+                ]
+              ],
+              "value": 50
+            },
+            "passed": true,
+            "message": "Angle is 310.00° (reflex 50.00°), expected 50° (tolerance 1.0°); closest match: 50.00°"
+          }
+        ],
+        "passed_conditions": [
+          {
+            "type": "parallel",
+            "objects": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "D"
+              ]
+            ]
+          },
+          {
+            "type": "angle_bisector",
+            "line": [
+              "E",
+              "G"
+            ],
+            "angle_points": [
+              "B",
+              "E",
+              "F"
+            ]
+          },
+          {
+            "type": "angle_value",
+            "points": [
+              [
+                "E",
+                "F",
+                "G"
+              ]
+            ],
+            "value": 50
+          }
+        ]
+      }
+    },
+    "memory_path": "/Users/ooongs/Github/pyggb/agent_images/1_memory.json"
+  },
+  "metrics": {
+    "summary": {
+      "total_problems": 1,
+      "successful_problems": 1,
+      "failed_problems": 0,
+      "skipped_problems": 0,
+      "success_rate": 1.0,
+      "skipped_problem_ids": [],
+      "skipped_reasons": {},
+      "average_steps": 5.0,
+      "average_success_steps": 5.0,
+      "min_success_steps": 5,
+      "max_success_steps": 5,
+      "success_step_distribution": {
+        "5": 1
+      },
+      "total_hallucinations": 0,
+      "average_hallucinations_per_problem": 0.0,
+      "hallucination_error_types": {},
+      "average_hallucination_recovery_steps": 0,
+      "missing_objects_by_type": {
+        "points": 6,
+        "segments": 6,
+        "lines": 2,
+        "circles": 0,
+        "polygons": 0
+      },
+      "total_missing_objects": 14,
+      "failed_conditions_by_type": {
+        "segment_length": 1,
+        "point_on_segment": 1,
+        "angle_bisector": 2,
+        "parallel": 1,
+        "angle_value": 1
+      },
+      "total_failed_conditions": 6,
+      "validation_errors_count": 0,
+      "validation_errors_by_type": {},
+      "unknown_condition_types": []
+    },
+    "problem_details": [
+      {
+        "problem_id": "1",
+        "success": true,
+        "iterations": 5,
+        "hallucinations": [],
+        "hallucination_count": 0,
+        "missing_objects": {},
+        "missing_objects_count": 0,
+        "failed_conditions": [],
+        "failed_conditions_count": 0,
+        "success_step": 5,
+        "object_score": 1.0,
+        "condition_score": 1.0,
+        "total_score": 1.0
+      }
+    ],
+    "skipped_problems": {
+      "count": 0,
+      "ids": [],
+      "reasons": {}
+    }
+  }
+}

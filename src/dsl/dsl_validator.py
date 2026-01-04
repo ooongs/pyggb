@@ -54,17 +54,14 @@ class ValidationErrorLogger:
         "concurrent", "point_on_line", "point_on_circle", "angle_bisector",
         "point_on_segment", "midpoint_of", "distance_equals", "triangle_valid",
         "point_between", "concentric_circles",
-        # New types from dataset
         "angle_sum", "isosceles_triangle", "right_triangle",
-        "segment_equal", "equal_length",  # Aliases for segment_equality
-        "length", "length_value", "segment_length", "length_equal",  # Aliases for distance_equals
         "perpendicular_bisector", "point_on_line_extension", "point_on_segment_extension",
         "same_side", "point_inside_circle",
-        "tangent", "tangent_line", "line_is_tangent", "tangent_at_point", "tangent_point",
-        "diameter", "segment_is_diameter",
+        "tangent", "tangent_at_point",
+        "diameter",
         "intersection_point", "polygon_property", "polygon_type",
         "regular_polygon", "square", "order_on_line", "perimeter",
-        "point_incenter", "point_on_arc", "point_on_arc_midpoint", "midpoint_of_arc",
+        "point_incenter", "point_on_arc", "midpoint_of_arc",
         "point_outside_line", "point_above_line",
         "intersection", "point_intersection",
         "geometric_transformation", "rotation",
@@ -445,22 +442,55 @@ class DSLValidator:
         
         # HYBRID VALIDATION: Lines (check explicit OR can be inferred from points)
         for line in required_objects.lines:
-            # First try to find explicit line
-            line_label = self._find_line(line[0], line[1])
-            if line_label:
-                found["lines"].append(line)
-            else:
-                # Implicit: Check if both points exist (line can be inferred)
-                if line[0] in element_dict and line[1] in element_dict:
-                    p1 = element_dict[line[0]].data
-                    p2 = element_dict[line[1]].data
-                    if isinstance(p1, gt.Point) and isinstance(p2, gt.Point):
-                        # Points exist, line can be inferred
+            # Handle different line formats: "l", ["l"], or ["A", "B"]
+            if isinstance(line, str):
+                # Named line: "l"
+                if line in element_dict:
+                    elem = element_dict[line].data
+                    if isinstance(elem, (gt.Line, gt.Segment, gt.Ray)):
                         found["lines"].append(line)
                     else:
                         missing["lines"].append(line)
                 else:
                     missing["lines"].append(line)
+
+            elif isinstance(line, list):
+                # Single-item list: ["l"] -> named line
+                if len(line) == 1:
+                    label = line[0]
+                    if label in element_dict:
+                        elem = element_dict[label].data
+                        if isinstance(elem, (gt.Line, gt.Segment, gt.Ray)):
+                            found["lines"].append(line)
+                        else:
+                            missing["lines"].append(line)
+                    else:
+                        missing["lines"].append(line)
+
+                # Two-item list: ["A", "B"] -> line by points
+                elif len(line) == 2:
+                    # First try to find explicit line
+                    line_label = self._find_line(line[0], line[1])
+                    if line_label:
+                        found["lines"].append(line)
+                    else:
+                        # Implicit: Check if both points exist (line can be inferred)
+                        if line[0] in element_dict and line[1] in element_dict:
+                            p1 = element_dict[line[0]].data
+                            p2 = element_dict[line[1]].data
+                            if isinstance(p1, gt.Point) and isinstance(p2, gt.Point):
+                                # Points exist, line can be inferred
+                                found["lines"].append(line)
+                            else:
+                                missing["lines"].append(line)
+                        else:
+                            missing["lines"].append(line)
+                else:
+                    # Invalid length (e.g., ["A", "B", "C"])
+                    missing["lines"].append(line)
+            else:
+                # Unknown type
+                missing["lines"].append(line)
         
         # EXPLICIT VALIDATION: Circles (must exist as objects)
         for circle_def in required_objects.circles:
@@ -936,10 +966,10 @@ class DSLValidator:
                 return self._check_isosceles_triangle(condition.data)
             elif condition_type == "right_triangle":
                 return self._check_right_triangle(condition.data)
-            elif condition_type in ["segment_equal", "equal_length"]:
+            elif condition_type == "segment_equal":
                 # Redirect to segment_equality
                 return self._check_segment_equality(condition.data)
-            elif condition_type in ["length", "length_value", "segment_length", "length_equal"]:
+            elif condition_type == "length":
                 # Redirect to distance_equals
                 return self._check_length_value(condition.data)
             elif condition_type == "perpendicular_bisector":
@@ -952,11 +982,11 @@ class DSLValidator:
                 return self._check_same_side(condition.data)
             elif condition_type == "point_inside_circle":
                 return self._check_point_inside_circle(condition.data)
-            elif condition_type in ["tangent", "tangent_line", "line_is_tangent"]:
+            elif condition_type == "tangent":
                 return self._check_tangent_line(condition.data)
-            elif condition_type in ["tangent_at_point", "tangent_point"]:
+            elif condition_type == "tangent_at_point":
                 return self._check_tangent_at_point(condition.data)
-            elif condition_type in ["diameter", "segment_is_diameter"]:
+            elif condition_type == "diameter":
                 return self._check_diameter(condition.data)
             elif condition_type == "intersection_point":
                 return self._check_intersection_point(condition.data)
@@ -976,8 +1006,6 @@ class DSLValidator:
                 return self._check_point_incenter(condition.data)
             elif condition_type == "point_on_arc":
                 return self._check_point_on_arc(condition.data)
-            elif condition_type == "point_on_arc_midpoint":
-                return self._check_point_on_arc_midpoint(condition.data)
             elif condition_type == "midpoint_of_arc":
                 return self._check_midpoint_of_arc(condition.data)
             elif condition_type == "point_outside_line":
@@ -1056,21 +1084,63 @@ class DSLValidator:
         
         # Create line from points
         return cmd.line_pp(pt1, pt2)
-    
+
+    def _get_line_from_data(self, line_data) -> Optional[gt.Line]:
+        """Get a Line object from various formats.
+
+        Handles:
+        - String label: "l" -> lookup in element_dict
+        - List with 1 item: ["l"] -> extract string and lookup
+        - List with 2 items: ["A", "B"] -> construct line from points
+
+        Args:
+            line_data: String label, single-item list, or two-point list
+
+        Returns:
+            Line object if found/created, None otherwise
+        """
+        element_dict = self.construction.element_dict
+
+        # Handle string: "l"
+        if isinstance(line_data, str):
+            if line_data in element_dict:
+                elem = element_dict[line_data].data
+                if isinstance(elem, (gt.Line, gt.Segment, gt.Ray)):
+                    return elem
+            return None
+
+        # Handle list
+        elif isinstance(line_data, list):
+            # Single-item list: ["l"] -> treat as named line
+            if len(line_data) == 1:
+                label = line_data[0]
+                if label in element_dict:
+                    elem = element_dict[label].data
+                    if isinstance(elem, (gt.Line, gt.Segment, gt.Ray)):
+                        return elem
+                return None
+
+            # Two-item list: ["A", "B"] -> line by points
+            elif len(line_data) == 2:
+                return self._get_line_from_points(line_data[0], line_data[1])
+
+        return None
+
     def _check_parallel(self, data: Dict) -> Dict[str, Any]:
         """Check if two lines are parallel."""
         objects = data.get("objects", [])
         if len(objects) != 2:
             return {"passed": False, "message": "Parallel condition requires 2 lines"}
-        
-        line1 = self._get_line_from_points(objects[0][0], objects[0][1])
-        line2 = self._get_line_from_points(objects[1][0], objects[1][1])
-        
+
+        # Get lines using the helper method (supports all formats)
+        line1 = self._get_line_from_data(objects[0])
+        line2 = self._get_line_from_data(objects[1])
+
         if line1 is None or line2 is None:
             return {"passed": False, "message": "Could not find lines"}
-        
+
         result = cmd.are_parallel_ll(line1, line2)
-        
+
         return {
             "passed": result.b,
             "message": f"Lines {'are' if result.b else 'are not'} parallel"
@@ -1081,15 +1151,16 @@ class DSLValidator:
         objects = data.get("objects", [])
         if len(objects) != 2:
             return {"passed": False, "message": "Perpendicular condition requires 2 lines"}
-        
-        line1 = self._get_line_from_points(objects[0][0], objects[0][1])
-        line2 = self._get_line_from_points(objects[1][0], objects[1][1])
-        
+
+        # Get lines using the helper method (supports all formats)
+        line1 = self._get_line_from_data(objects[0])
+        line2 = self._get_line_from_data(objects[1])
+
         if line1 is None or line2 is None:
             return {"passed": False, "message": "Could not find lines"}
-        
+
         result = cmd.are_perpendicular_ll(line1, line2)
-        
+
         return {
             "passed": result.b,
             "message": f"Lines {'are' if result.b else 'are not'} perpendicular"
@@ -1204,8 +1275,9 @@ class DSLValidator:
     
     def _check_segment_equality(self, data: Dict) -> Dict[str, Any]:
         """Check if multiple segments are equal in length."""
-        segments = data.get("segments", [])
-        
+        # Support both 'segments' and 'objects' field
+        segments = data.get("segments", data.get("objects", []))
+
         if len(segments) < 2:
             return {"passed": False, "message": "Segment equality requires at least 2 segments"}
         
@@ -1261,28 +1333,51 @@ class DSLValidator:
         }
     
     def _check_collinear(self, data: Dict) -> Dict[str, Any]:
-        """Check if points are collinear."""
+        """Check if points are collinear.
+
+        If 'line' is provided (named line), also validates that all points lie on that line.
+        """
         points = data.get("points", [])
-        
+        line_data = data.get("line")
+
         if len(points) < 3:
             return {"passed": False, "message": "Collinearity requires at least 3 points"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         # Check first 3 points (can extend to check all combinations)
         if not all(p in element_dict for p in points[:3]):
             return {"passed": False, "message": "Could not find all points"}
-        
+
         p1, p2, p3 = [element_dict[p].data for p in points[:3]]
-        
+
         if not all(isinstance(p, gt.Point) for p in [p1, p2, p3]):
             return {"passed": False, "message": "Invalid point types"}
-        
+
         result = cmd.are_collinear_ppp(p1, p2, p3)
-        
+
+        if not result.b:
+            return {"passed": False, "message": "Points are not collinear"}
+
+        # If named line is provided, verify all points lie on it
+        if line_data:
+            line = self._get_line_from_data(line_data)
+            if line is None:
+                return {"passed": False, "message": "Could not find named line"}
+
+            # Check all points lie on the named line
+            for point_label in points:
+                if point_label not in element_dict:
+                    return {"passed": False, "message": f"Could not find point {point_label}"}
+                pt = element_dict[point_label].data
+                if not isinstance(pt, gt.Point):
+                    return {"passed": False, "message": f"Invalid point type for {point_label}"}
+                if not line.contains(pt.a):
+                    return {"passed": False, "message": f"Point {point_label} is not on named line"}
+
         return {
-            "passed": result.b,
-            "message": f"Points {'are' if result.b else 'are not'} collinear"
+            "passed": True,
+            "message": f"Points are collinear" + (f" on named line" if line_data else "")
         }
     
     def _check_not_collinear(self, data: Dict) -> Dict[str, Any]:
@@ -1319,19 +1414,20 @@ class DSLValidator:
     def _check_concurrent(self, data: Dict) -> Dict[str, Any]:
         """Check if three lines meet at a point."""
         lines = data.get("lines", [])
-        
+
         if len(lines) != 3:
             return {"passed": False, "message": "Concurrent condition requires 3 lines"}
-        
+
         line_objs = []
-        for line_points in lines:
-            line = self._get_line_from_points(line_points[0], line_points[1])
+        for line_data in lines:
+            # Support all line formats
+            line = self._get_line_from_data(line_data)
             if line is None:
-                return {"passed": False, "message": "Could not find all lines"}
+                return {"passed": False, "message": f"Could not find line {line_data}"}
             line_objs.append(line)
-        
+
         result = cmd.are_concurrent_lll(*line_objs)
-        
+
         return {
             "passed": result.b,
             "message": f"Lines {'are' if result.b else 'are not'} concurrent"
@@ -1340,26 +1436,27 @@ class DSLValidator:
     def _check_point_on_line(self, data: Dict) -> Dict[str, Any]:
         """Check if a point lies on a line."""
         point = data.get("point")
-        line_points = data.get("line", [])
-        
-        if not point or len(line_points) != 2:
+        line_data = data.get("line")
+
+        if not point or not line_data:
             return {"passed": False, "message": "Invalid point_on_line condition"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         if point not in element_dict:
             return {"passed": False, "message": "Could not find point"}
-        
+
         pt = element_dict[point].data
         if not isinstance(pt, gt.Point):
             return {"passed": False, "message": "Invalid point type"}
-        
-        line = self._get_line_from_points(line_points[0], line_points[1])
+
+        # Handle all line formats: "l", ["l"], or ["A", "B"]
+        line = self._get_line_from_data(line_data)
         if line is None:
             return {"passed": False, "message": "Could not find line"}
-        
+
         result = cmd.contained_by_pl(pt, line)
-        
+
         return {
             "passed": result.b,
             "message": f"Point {'is' if result.b else 'is not'} on line"
@@ -1425,56 +1522,68 @@ class DSLValidator:
     
     def _check_angle_bisector(self, data: Dict) -> Dict[str, Any]:
         """Check if a line bisects an angle."""
-        line_points = data.get("line", [])
+        line_data = data.get("line")
         angle_points = data.get("angle_points", [])
-        
-        if len(line_points) != 2 or len(angle_points) != 3:
+
+        if not line_data or len(angle_points) != 3:
             return {"passed": False, "message": "Invalid angle_bisector condition"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         # Get angle vertex (middle point)
         vertex = angle_points[1]
         if vertex not in element_dict:
             return {"passed": False, "message": "Could not find angle vertex"}
-        
+
+        vertex_pt_elem = element_dict[vertex].data
+
+        # Get bisector line
+        bisector_line = self._get_line_from_data(line_data)
+        if bisector_line is None:
+            return {"passed": False, "message": "Could not find bisector line"}
+
         # Check if bisector line passes through vertex
-        if vertex not in line_points:
-            # Check if vertex lies on the line
-            line = self._get_line_from_points(line_points[0], line_points[1])
-            vertex_pt = element_dict[vertex].data
-            if not isinstance(vertex_pt, gt.Point) or not line.contains(vertex_pt.a):
-                return {"passed": False, "message": "Bisector doesn't pass through angle vertex"}
-        
+        if not isinstance(vertex_pt_elem, gt.Point) or not bisector_line.contains(vertex_pt_elem.a):
+            return {"passed": False, "message": "Bisector doesn't pass through angle vertex"}
+
         # Get all points
         if not all(p in element_dict for p in angle_points):
             return {"passed": False, "message": "Could not find angle points"}
-        
+
         p1, vertex_pt, p3 = [element_dict[p].data for p in angle_points]
-        
+
         if not all(isinstance(p, gt.Point) for p in [p1, vertex_pt, p3]):
             return {"passed": False, "message": "Invalid point types"}
-        
-        # Get a point on the bisector (not the vertex)
+
+        # Get a point on the bisector line (not the vertex)
+        # We need to find or create a point on the line
         bisector_pt = None
-        for lp in line_points:
-            if lp != vertex and lp in element_dict:
-                bisector_pt = element_dict[lp].data
-                break
-        
+
+        # If line_data is a list of 2 points, use the one that's not the vertex
+        if isinstance(line_data, list) and len(line_data) == 2:
+            for lp in line_data:
+                if lp != vertex and lp in element_dict:
+                    bisector_pt = element_dict[lp].data
+                    break
+
+        # If we couldn't get a point from line_data, create one on the line
         if bisector_pt is None or not isinstance(bisector_pt, gt.Point):
-            return {"passed": False, "message": "Could not find bisector point"}
-        
+            # Create a point along the bisector direction
+            # Use a point at distance 1 from vertex along the line
+            direction = bisector_line.direction
+            test_point_coords = vertex_pt.a + direction
+            bisector_pt = gt.Point(test_point_coords)
+
         # Calculate angles on both sides
         angle1 = cmd.angle_ppp(p1, vertex_pt, bisector_pt)
         angle2 = cmd.angle_ppp(bisector_pt, vertex_pt, p3)
-        
+
         # Check if angles are equal
         result = cmd.are_congruent_aa(angle1, angle2)
-        
+
         angle1_deg = np.degrees(angle1.angle)
         angle2_deg = np.degrees(angle2.angle)
-        
+
         return {
             "passed": result.b,
             "message": f"Bisector creates angles of {angle1_deg:.2f}° and {angle2_deg:.2f}°"
@@ -1526,7 +1635,11 @@ class DSLValidator:
     def _check_midpoint_of(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is the midpoint of a segment."""
         point = data.get("point")
-        segment = data.get("segment", [])
+        # Support both 'segment' and 'objects' field
+        segment = data.get("segment")
+        if segment is None:
+            objects = data.get("objects", [])
+            segment = objects[0] if objects else []
         
         if not point or len(segment) != 2:
             return {"passed": False, "message": "Invalid midpoint_of condition"}
@@ -1999,47 +2112,39 @@ class DSLValidator:
 
     def _check_perpendicular_bisector(self, data: Dict) -> Dict[str, Any]:
         """Check if a line is the perpendicular bisector of a segment."""
-        line_points = data.get("line", [])
+        line_data = data.get("line")
         segment = data.get("segment", [])
-        
-        if len(segment) != 2:
-            return {"passed": False, "message": "Segment requires 2 points"}
-        
+
+        if not line_data or len(segment) != 2:
+            return {"passed": False, "message": "Invalid perpendicular_bisector condition"}
+
         element_dict = self.construction.element_dict
-        
+
         # Get segment endpoints
         if not all(p in element_dict for p in segment):
             return {"passed": False, "message": "Could not find segment points"}
-        
+
         seg_p1, seg_p2 = [element_dict[p].data for p in segment]
         if not all(isinstance(p, gt.Point) for p in [seg_p1, seg_p2]):
             return {"passed": False, "message": "Invalid point types"}
-        
+
         # Calculate midpoint
         midpoint = (seg_p1.a + seg_p2.a) / 2
-        
-        # Get the bisector line
-        line = None
-        if len(line_points) == 2:
-            line = self._get_line_from_points(line_points[0], line_points[1])
-        elif len(line_points) == 1:
-            # Named line like 'l'
-            line_label = line_points[0]
-            if line_label in element_dict:
-                line = element_dict[line_label].data
-        
-        if line is None or not isinstance(line, gt.Line):
+
+        # Get the bisector line (supports all formats)
+        line = self._get_line_from_data(line_data)
+        if line is None:
             return {"passed": False, "message": "Could not find bisector line"}
-        
+
         # Check 1: Line passes through midpoint
         passes_midpoint = line.contains(midpoint)
-        
+
         # Check 2: Line is perpendicular to segment
         segment_line = cmd.line_pp(seg_p1, seg_p2)
         perp_result = cmd.are_perpendicular_ll(line, segment_line)
-        
+
         passed = passes_midpoint and perp_result.b
-        
+
         return {
             "passed": passed,
             "message": f"Line {'is' if passed else 'is not'} perpendicular bisector (midpoint: {passes_midpoint}, perpendicular: {perp_result.b})"
@@ -2048,29 +2153,31 @@ class DSLValidator:
     def _check_point_on_line_extension(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is on the extension of a line segment."""
         point = data.get("point")
-        line_segment = data.get("line_segment", data.get("line", []))
-        
-        if not point or len(line_segment) != 2:
+        line_data = data.get("line_segment", data.get("line"))
+
+        if not point or not line_data:
             return {"passed": False, "message": "Invalid point_on_line_extension condition"}
-        
+
         element_dict = self.construction.element_dict
-        
-        if point not in element_dict or not all(p in element_dict for p in line_segment):
-            return {"passed": False, "message": "Could not find all points"}
-        
+
+        if point not in element_dict:
+            return {"passed": False, "message": "Could not find point"}
+
         pt = element_dict[point].data
-        p1 = element_dict[line_segment[0]].data
-        p2 = element_dict[line_segment[1]].data
-        
-        if not all(isinstance(p, gt.Point) for p in [pt, p1, p2]):
-            return {"passed": False, "message": "Invalid point types"}
-        
-        # Check collinearity
-        collinear_result = cmd.are_collinear_ppp(pt, p1, p2)
-        
+        if not isinstance(pt, gt.Point):
+            return {"passed": False, "message": "Invalid point type"}
+
+        # Get line
+        line = self._get_line_from_data(line_data)
+        if line is None:
+            return {"passed": False, "message": "Could not find line"}
+
+        # Check if point is on the line (collinear)
+        is_on_line = line.contains(pt.a)
+
         return {
-            "passed": collinear_result.b,
-            "message": f"Point {'is' if collinear_result.b else 'is not'} on line extension"
+            "passed": is_on_line,
+            "message": f"Point {'is' if is_on_line else 'is not'} on line extension"
         }
     
     def _check_point_on_segment_extension(self, data: Dict) -> Dict[str, Any]:
@@ -2115,33 +2222,37 @@ class DSLValidator:
     def _check_same_side(self, data: Dict) -> Dict[str, Any]:
         """Check if two points are on the same side of a line."""
         points = data.get("points", [])
-        line_points = data.get("line", [])
-        
-        if len(points) != 2 or len(line_points) != 2:
+        line_data = data.get("line")
+
+        if len(points) != 2 or not line_data:
             return {"passed": False, "message": "Same side requires 2 points and a line"}
-        
+
         element_dict = self.construction.element_dict
-        
-        if not all(p in element_dict for p in points + line_points):
+
+        if not all(p in element_dict for p in points):
             return {"passed": False, "message": "Could not find all points"}
-        
+
         pt1, pt2 = [element_dict[p].data for p in points]
-        l1, l2 = [element_dict[p].data for p in line_points]
-        
-        if not all(isinstance(p, gt.Point) for p in [pt1, pt2, l1, l2]):
+
+        if not all(isinstance(p, gt.Point) for p in [pt1, pt2]):
             return {"passed": False, "message": "Invalid point types"}
-        
-        # Create line
-        line = cmd.line_pp(l1, l2)
-        
+
+        # Get line (supports all formats)
+        line = self._get_line_from_data(line_data)
+        if line is None:
+            return {"passed": False, "message": "Could not find line"}
+
         # Calculate signed distance for both points
         # Using cross product to determine which side of the line each point is on
-        line_vec = l2.a - l1.a
-        to_pt1 = pt1.a - l1.a
-        to_pt2 = pt2.a - l1.a
-        
-        cross1 = np.cross(line_vec, to_pt1)
-        cross2 = np.cross(line_vec, to_pt2)
+        # Line has a point on it (line.a) and a direction (line.direction)
+        line_point = line.a
+        line_direction = line.direction
+
+        to_pt1 = pt1.a - line_point
+        to_pt2 = pt2.a - line_point
+
+        cross1 = np.cross(line_direction, to_pt1)
+        cross2 = np.cross(line_direction, to_pt2)
         
         same_side = (cross1 * cross2) > 0  # Same sign means same side
         
@@ -2190,27 +2301,27 @@ class DSLValidator:
     
     def _check_tangent_line(self, data: Dict) -> Dict[str, Any]:
         """Check if a line is tangent to a circle."""
-        line_points = data.get("line", [])
+        line_data = data.get("line")
         circle_center = data.get("circle_center")
         circle_data = data.get("circle", {})
-        
+
         if circle_center is None and isinstance(circle_data, dict):
             circle_center = circle_data.get("center")
-        
-        if len(line_points) != 2 or not circle_center:
+
+        if not line_data or not circle_center:
             return {"passed": False, "message": "Invalid tangent line condition"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         if circle_center not in element_dict:
             return {"passed": False, "message": "Could not find circle center"}
-        
+
         center = element_dict[circle_center].data
         if not isinstance(center, gt.Point):
             return {"passed": False, "message": "Invalid center type"}
-        
-        # Get the line
-        line = self._get_line_from_points(line_points[0], line_points[1])
+
+        # Get the line (supports all formats)
+        line = self._get_line_from_data(line_data)
         if line is None:
             return {"passed": False, "message": "Could not find line"}
         
@@ -2220,18 +2331,18 @@ class DSLValidator:
             return {"passed": False, "message": "Could not find circle"}
         
         circle = element_dict[circle_label].data
-        
+
         # Calculate distance from center to line
-        # Distance from point to line: |ax + by + c| / sqrt(a^2 + b^2)
-        # For line through p1, p2: (y2-y1)x - (x2-x1)y + (x2-x1)y1 - (y2-y1)x1 = 0
-        p1_data = element_dict[line_points[0]].data.a
-        p2_data = element_dict[line_points[1]].data.a
-        
-        a = p2_data[1] - p1_data[1]
-        b = p1_data[0] - p2_data[0]
-        c = p2_data[0] * p1_data[1] - p1_data[0] * p2_data[1]
-        
-        dist_to_line = np.abs(a * center.a[0] + b * center.a[1] + c) / np.sqrt(a**2 + b**2)
+        # Use line's perpendicular distance formula
+        line_point = line.a
+        line_direction = line.direction
+
+        # Vector from line point to circle center
+        to_center = center.a - line_point
+
+        # Project onto the perpendicular direction (cross product in 2D gives signed area)
+        # Distance is the magnitude of the perpendicular component
+        dist_to_line = np.abs(np.cross(line_direction, to_center)) / np.linalg.norm(line_direction)
         
         # Line is tangent if distance equals radius
         is_tangent = np.abs(dist_to_line - circle.r) <= self.tolerance
@@ -2243,39 +2354,37 @@ class DSLValidator:
     
     def _check_tangent_at_point(self, data: Dict) -> Dict[str, Any]:
         """Check if a line is tangent to a circle at a specific point."""
-        line_points = data.get("line", [])
+        line_data = data.get("line")
         circle_center = data.get("circle_center")
         tangent_point = data.get("tangent_point", data.get("point"))
-        
-        if len(line_points) != 2 or not circle_center or not tangent_point:
+
+        if not line_data or not circle_center or not tangent_point:
             return {"passed": False, "message": "Invalid tangent_at_point condition"}
-        
-        element_dict = self.construction.element_dict
-        
+
         # First check if line is tangent
         tangent_result = self._check_tangent_line({
-            "line": line_points,
+            "line": line_data,
             "circle_center": circle_center
         })
-        
+
         if not tangent_result["passed"]:
             return tangent_result
-        
+
         # Check if tangent point is on the circle
         point_on_circle = self._check_point_on_circle({
             "point": tangent_point,
             "circle_center": circle_center
         })
-        
+
         if not point_on_circle["passed"]:
             return {"passed": False, "message": "Tangent point is not on circle"}
-        
+
         # Check if tangent point is on the line
         point_on_line = self._check_point_on_line({
             "point": tangent_point,
-            "line": line_points
+            "line": line_data
         })
-        
+
         return {
             "passed": point_on_line["passed"],
             "message": f"Line {'is' if point_on_line['passed'] else 'is not'} tangent at point {tangent_point}"
@@ -2324,32 +2433,29 @@ class DSLValidator:
         """Check if a point is the intersection of two lines."""
         point = data.get("point")
         lines = data.get("lines", [])
-        
+
         if not point or len(lines) != 2:
             return {"passed": False, "message": "Invalid intersection_point condition"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         if point not in element_dict:
             return {"passed": False, "message": "Could not find intersection point"}
-        
+
         pt = element_dict[point].data
         if not isinstance(pt, gt.Point):
             return {"passed": False, "message": "Invalid point type"}
-        
-        # Check if point is on both lines
-        for line_points in lines:
-            if len(line_points) != 2:
-                return {"passed": False, "message": "Each line requires 2 points"}
-            
-            line = self._get_line_from_points(line_points[0], line_points[1])
+
+        # Check if point is on both lines (supports all line formats)
+        for line_data in lines:
+            line = self._get_line_from_data(line_data)
             if line is None:
-                return {"passed": False, "message": f"Could not find line through {line_points}"}
-            
+                return {"passed": False, "message": f"Could not find line {line_data}"}
+
             if not line.contains(pt.a):
                 return {
                     "passed": False,
-                    "message": f"Point is not on line {line_points}"
+                    "message": f"Point is not on line {line_data}"
                 }
         
         return {
@@ -2399,14 +2505,7 @@ class DSLValidator:
             return {"passed": True, "message": f"Polygon property check for {property_type}"}
         
         return {"passed": False, "message": f"Unknown polygon property: {property_type}"}
-    
-    def _check_polygon_type(self, data: Dict) -> Dict[str, Any]:
-        """Check if a polygon is of a specific type."""
-        polygon = data.get("polygon", [])
-        expected_type = data.get("value", "").lower()
-        
-        return self._check_polygon_property({"polygon": polygon, "property": expected_type})
-    
+
     def _check_regular_polygon(self, data: Dict) -> Dict[str, Any]:
         """Check if a polygon is regular (all sides and angles equal)."""
         polygon_points = data.get("polygon_points", [])
@@ -2500,31 +2599,46 @@ class DSLValidator:
         }
     
     def _check_order_on_line(self, data: Dict) -> Dict[str, Any]:
-        """Check if points are in order on a line."""
+        """Check if points are in order on a line.
+
+        If 'line' is provided (named line), also validates that all points lie on that line.
+        """
         points = data.get("points", [])
-        
+        line_data = data.get("line")
+
         if len(points) < 3:
             return {"passed": False, "message": "Order check requires at least 3 points"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         if not all(p in element_dict for p in points):
             return {"passed": False, "message": "Could not find all points"}
-        
+
         pts = [element_dict[p].data for p in points]
         if not all(isinstance(p, gt.Point) for p in pts):
             return {"passed": False, "message": "Invalid point types"}
-        
+
         # Check collinearity first
         for i in range(len(pts) - 2):
             collinear_result = cmd.are_collinear_ppp(pts[i], pts[i+1], pts[i+2])
             if not collinear_result.b:
                 return {"passed": False, "message": "Points are not collinear"}
-        
+
+        # If named line is provided, verify all points lie on it
+        if line_data:
+            line = self._get_line_from_data(line_data)
+            if line is None:
+                return {"passed": False, "message": "Could not find named line"}
+
+            # Check all points lie on the named line
+            for pt in pts:
+                if not line.contains(pt.a):
+                    return {"passed": False, "message": "Not all points are on named line"}
+
         # Check order by distances from first point
         distances = [cmd.distance_pp(pts[0], pt).x for pt in pts]
         is_ordered = all(distances[i] <= distances[i+1] for i in range(len(distances) - 1))
-        
+
         return {
             "passed": is_ordered,
             "message": f"Points {'are' if is_ordered else 'are not'} in order on the line"
@@ -2788,11 +2902,7 @@ class DSLValidator:
             "passed": True,  # Simplified - assume valid if points exist
             "message": "Point on arc check (simplified)"
         }
-    
-    def _check_point_on_arc_midpoint(self, data: Dict) -> Dict[str, Any]:
-        """Check if a point is the midpoint of an arc."""
-        return self._check_point_on_arc(data)
-    
+
     def _check_midpoint_of_arc(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is the midpoint of an arc."""
         return self._check_point_on_arc(data)
@@ -2800,40 +2910,27 @@ class DSLValidator:
     def _check_point_outside_line(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is not on a line."""
         point = data.get("point")
-        line_data = data.get("line", [])
-        
-        if not point:
+        line_data = data.get("line")
+
+        if not point or not line_data:
             return {"passed": False, "message": "Invalid point_outside_line condition"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         if point not in element_dict:
             return {"passed": False, "message": "Could not find point"}
-        
+
         pt = element_dict[point].data
         if not isinstance(pt, gt.Point):
             return {"passed": False, "message": "Invalid point type"}
-        
-        # Handle named line like 'l'
-        if isinstance(line_data, str):
-            if line_data in element_dict and isinstance(element_dict[line_data].data, gt.Line):
-                line = element_dict[line_data].data
-                is_outside = not line.contains(pt.a)
-                return {
-                    "passed": is_outside,
-                    "message": f"Point {'is' if is_outside else 'is not'} outside line"
-                }
-            return {"passed": True, "message": "Line not found, assuming outside"}
-        
-        if len(line_data) != 2:
-            return {"passed": False, "message": "Line requires 2 points"}
-        
-        line = self._get_line_from_points(line_data[0], line_data[1])
+
+        # Get line using the helper method (supports all formats)
+        line = self._get_line_from_data(line_data)
         if line is None:
-            return {"passed": True, "message": "Could not find line, assuming outside"}
-        
+            return {"passed": True, "message": "Line not found, assuming outside"}
+
         is_outside = not line.contains(pt.a)
-        
+
         return {
             "passed": is_outside,
             "message": f"Point {'is' if is_outside else 'is not'} outside line"
@@ -2842,28 +2939,32 @@ class DSLValidator:
     def _check_point_above_line(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is above a line (positive y relative to line)."""
         point = data.get("point")
-        line_points = data.get("line", [])
-        
-        if not point or len(line_points) != 2:
+        line_data = data.get("line")
+
+        if not point or not line_data:
             return {"passed": False, "message": "Invalid point_above_line condition"}
-        
+
         element_dict = self.construction.element_dict
-        
-        if point not in element_dict or not all(p in element_dict for p in line_points):
-            return {"passed": False, "message": "Could not find all points"}
-        
+
+        if point not in element_dict:
+            return {"passed": False, "message": "Could not find point"}
+
         pt = element_dict[point].data
-        l1 = element_dict[line_points[0]].data
-        l2 = element_dict[line_points[1]].data
-        
-        if not all(isinstance(p, gt.Point) for p in [pt, l1, l2]):
-            return {"passed": False, "message": "Invalid point types"}
-        
+        if not isinstance(pt, gt.Point):
+            return {"passed": False, "message": "Invalid point type"}
+
+        # Get line
+        line = self._get_line_from_data(line_data)
+        if line is None:
+            return {"passed": False, "message": "Could not find line"}
+
         # Calculate cross product to determine which side
-        line_vec = l2.a - l1.a
-        to_pt = pt.a - l1.a
-        cross = np.cross(line_vec, to_pt)
-        
+        # Line has a point on it (line.a) and a direction (line.direction)
+        line_point = line.a
+        line_direction = line.direction
+        to_pt = pt.a - line_point
+        cross = np.cross(line_direction, to_pt)
+
         is_above = cross > 0  # Positive means "left" of line direction (typically "above")
         
         return {

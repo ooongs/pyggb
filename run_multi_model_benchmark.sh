@@ -24,10 +24,10 @@ API_BASE=""
 
 # Default models list (customize as needed)
 DEFAULT_MODELS=(
-    # "gpt-5-mini"
+    "gpt-5-mini"
     # "gpt-4.1"
     # "gpt-5.1"
-    "claude-sonnet-4-5"
+    # "claude-sonnet-4-5"
     # Add vLLM models here
     # "Qwen/Qwen2.5-VL-7B-Instruct"
     # "meta-llama/Llama-3.2-11B-Vision-Instruct"

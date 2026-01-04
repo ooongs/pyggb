@@ -1,27 +1,21 @@
-# Define hypotenuse endpoints with AB length 3
-point : 0 0 -> A
-point : 3 0 -> B
+point : 0 0 -> O
+point : 100 0 -> A
+point : 100*cos(140°) 100*sin(140°) -> B
 
-# Segment and line AB (hypotenuse)
+circle : O A -> circle_O
+
+line : O A -> line_OA
+line : O B -> line_OB
 segment : A B -> AB
-line : A B -> line_AB
+segment : O A -> OA
+segment : O B -> OB
 
-# Midpoint of AB (center of circumcircle with diameter AB)
-midpoint : A B -> M
+orthogonal_line : A line_OA -> tangent_A
+orthogonal_line : B line_OB -> tangent_B
+intersect : tangent_A tangent_B -> P
+segment : P A -> PA
+segment : P B -> PB
 
-# Construct C on the circle with diameter AB by rotating B about M by 30°
-# This guarantees triangle ABC is right-angled at C
-rotate : B 30° M -> C
-
-# Sides of the right triangle
+rotate : A 180° O -> C
 segment : A C -> AC
-segment : B C -> BC
-
-# Circle centered at C with radius 1 to enforce CP = 1
-circle : C 1 -> circle_C1
-
-# Intersection of this circle with line AB; define point P on AB with CP = 1
-intersect : line_AB circle_C1 -> P Q
-
-# Explicitly create segment CP to highlight the length condition
-segment : C P -> CP
+line : A C -> line_AC

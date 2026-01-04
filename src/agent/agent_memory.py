@@ -366,21 +366,73 @@ class AgentMemory:
             json.dump(data, f, ensure_ascii=False, indent=2)
     
     @classmethod
-    def load_from_file(cls, filepath: str) -> 'AgentMemory':
-        """Load memory from JSON file."""
+    def load_from_file(cls, filepath: str, max_iteration: Optional[int] = None) -> 'AgentMemory':
+        """
+        Load memory from JSON file with optional iteration truncation.
+
+        Args:
+            filepath: Path to memory JSON file
+            max_iteration: Load steps up to this iteration (inclusive). None = load all
+
+        Returns:
+            AgentMemory with reconstructed steps
+        """
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        
+
+        # Create memory instance
         memory = cls(data['problem_id'], data['problem_text'])
         memory.start_time = datetime.fromisoformat(data['start_time'])
-        if data['end_time']:
+        if data.get('end_time'):
             memory.end_time = datetime.fromisoformat(data['end_time'])
-        memory.final_success = data['final_success']
-        memory.final_dsl = data['final_dsl']
-        
-        # Reconstruct steps (simplified - without full objects)
-        # For full reconstruction, would need to recreate Thought, Action, Observation objects
-        
+        memory.final_success = data.get('final_success', False)
+        memory.final_dsl = data.get('final_dsl')
+
+        # Reconstruct steps from JSON
+        for step_data in data.get('steps', []):
+            iteration = step_data['iteration']
+
+            # Stop if max_iteration is specified and we've reached it
+            if max_iteration is not None and iteration > max_iteration:
+                break
+
+            # Reconstruct Thought
+            thought_data = step_data['thought']
+            thought = Thought(
+                content=thought_data['content'],
+                timestamp=thought_data.get('timestamp')
+            )
+
+            # Reconstruct Action
+            action_data = step_data['action']
+            action = Action(
+                action_type=action_data['action_type'],
+                content=action_data['content'],
+                timestamp=action_data.get('timestamp')
+            )
+
+            # Reconstruct Observation
+            obs_data = step_data['observation']
+            observation = Observation(
+                success=obs_data['success'],
+                has_image=obs_data['has_image'],
+                error=obs_data.get('error'),
+                validation_result=obs_data.get('validation_result'),
+                image_base64=obs_data.get('image_base64'),  # Will be None (excluded in save)
+                stdout=obs_data.get('stdout', ''),
+                stderr=obs_data.get('stderr', ''),
+                timestamp=obs_data.get('timestamp')
+            )
+
+            # Create Step and add to memory
+            step = Step(
+                iteration=iteration,
+                thought=thought,
+                action=action,
+                observation=observation
+            )
+            memory.steps.append(step)
+
         return memory
 
 

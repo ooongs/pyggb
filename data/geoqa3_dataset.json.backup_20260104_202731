@@ -261,11 +261,7 @@
       "1190",
       "1191"
     ],
-    "error_ids": [],
-    "last_fixed": "2026-01-04T22:49:13.755880",
-    "fixes_applied": {
-      "circle_radius_key": 1
-    }
+    "error_ids": []
   },
   "problems": [
     {
@@ -319,13 +315,16 @@
           "point": "A",
           "circle": {
             "center": "O",
-            "radius_point": "A"
-          }
+              "radius_point": "A"
+            }
         },
         {
           "type": "point_on_circle",
           "point": "B",
-          "circle_center": "O"
+          "segment": [
+            "O",
+            "B"
+          ]
         },
         {
           "type": "point_on_circle",
@@ -338,7 +337,7 @@
         {
           "type": "point_on_circle",
           "point": "D",
-          "circle": {
+          "circle": { 
             "center": "O",
             "radius_point": "D"
           }
@@ -406,8 +405,8 @@
           "point": "A",
           "circle": {
             "center": "O",
-            "radius_point": "A"
-          }
+              "radius_point": "A"
+            }
         },
         {
           "type": "point_on_circle",
@@ -918,6 +917,7 @@
           "type": "geometric_transformation",
           "transformation": "rotation",
           "center": "C",
+          "direction": "clockwise",
           "preimage_triangle": [
             "A",
             "B",
@@ -927,7 +927,10 @@
             "D",
             "E",
             "C"
-          ]
+          ],
+          "correspondence": {
+            "A": "D"
+          }
         },
         {
           "type": "point_on_segment",
@@ -3641,7 +3644,7 @@
     },
     {
       "id": "64",
-      "subject": "在△ABC中,∠C=90°,AC=4㎝,AB=7㎝,AD平分∠BAC交BC于D,DE⊥AB于E",
+      "subject": "(题文)(题文)在△ABC中,∠C=90°,AC=4㎝,AB=7㎝,AD平分∠BAC交BC于D,DE⊥AB于E",
       "required_objects": {
         "points": [
           "A",
@@ -4320,6 +4323,65 @@
       "cleaned_text": "△ABC中,∠C=90°,点D在AC边上,DE∥AB,若∠ADE=46°",
       "category": "Triangle Properties & Constructions",
       "difficulty": 2
+    },
+    {
+      "id": "80",
+      "subject": "测得BD=\"120\"m,DC=\"60\"m,EC=\"50\"m．",
+      "required_objects": {
+        "points": [
+          "B",
+          "D",
+          "C",
+          "E"
+        ],
+        "segments": [
+          [
+            "B",
+            "D"
+          ],
+          [
+            "D",
+            "C"
+          ],
+          [
+            "E",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "D"
+          ],
+          "value": 120.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "D",
+            "C"
+          ],
+          "value": 60.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "E",
+            "C"
+          ],
+          "value": 50.0
+        }
+      ],
+      "original_text": "如图,测得BD=\"120\"m,DC=\"60\"m,EC=\"50\"m,则河宽AB为()．",
+      "cleaned_text": "测得BD=\"120\"m,DC=\"60\"m,EC=\"50\"m．",
+      "category": "Measurement & Ratios",
+      "difficulty": 1
     },
     {
       "id": "81",
@@ -7783,6 +7845,26 @@
       "difficulty": 2
     },
     {
+      "id": "148",
+      "subject": "C岛在A岛的北偏东45°方向,C岛在B岛的北偏西25°方向",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,C岛在A岛的北偏东45°方向,C岛在B岛的北偏西25°方向,则从C岛看A、B两岛的视角∠ACB的度数是()",
+      "cleaned_text": "C岛在A岛的北偏东45°方向,C岛在B岛的北偏西25°方向",
+      "category": "Basic Constructions",
+      "difficulty": 2
+    },
+    {
       "id": "150",
       "subject": "△ABC中,AB=AC,∠A=36°,AB的垂直平分线DE交AC于D,交AB于E",
       "required_objects": {
@@ -9715,6 +9797,27 @@
       "difficulty": 2
     },
     {
+      "id": "192",
+      "subject": "圆锥模具的母线长为10,底面半径为5,该圆锥模具的侧面积是()",
+      "required_objects": {
+        "points": [],
+        "segments": [],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,圆锥模具的母线长为10,底面半径为5,该圆锥模具的侧面积是()",
+      "cleaned_text": "圆锥模具的母线长为10,底面半径为5,该圆锥模具的侧面积是()",
+      "category": "Measurement & Ratios",
+      "difficulty": 1
+    },
+    {
       "id": "196",
       "subject": "在⊙O中,弦AC∥半径OB,∠BOC=50°",
       "required_objects": {
@@ -10052,10 +10155,7 @@
               "C"
             ]
           ],
-          "ratio": [
-            2,
-            1
-          ]
+          "ratio": [2,1]
         },
         {
           "type": "angle_value",
@@ -10178,7 +10278,7 @@
     },
     {
       "id": "204",
-      "subject": "四边形ABCD是⊙O的内接四边形,若∠A=70°",
+      "subject": "(3分)四边形ABCD是⊙O的内接四边形,若∠A=70°",
       "required_objects": {
         "points": [
           "A",
@@ -10411,7 +10511,7 @@
         "points": [
           "A",
           "B",
-          "C",
+          "C",  
           "N",
           "M"
         ],
@@ -10479,7 +10579,7 @@
           ]
         },
         {
-          "type": "midpoint_of",
+          "type":"midpoint_of",
           "point": "M",
           "segment": [
             "A",
@@ -10593,78 +10693,7 @@
           ]
         ]
       },
-      "verification_conditions": [
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "O",
-              "A",
-              "D"
-            ]
-          ],
-          "value": 40
-        },
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "O",
-              "B",
-              "E"
-            ]
-          ],
-          "value": 40
-        },
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "O",
-              "C",
-              "F"
-            ]
-          ],
-          "value": 40
-        },
-        {
-          "type": "segment_equality",
-          "segments": [
-            [
-              "O",
-              "A"
-            ],
-            [
-              "A",
-              "B"
-            ],
-            [
-              "B",
-              "C"
-            ],
-            [
-              "O",
-              "C"
-            ],
-            [
-              "O",
-              "D"
-            ],
-            [
-              "D",
-              "E"
-            ],
-            [
-              "E",
-              "F"
-            ],
-            [
-              "O",
-              "F"
-            ]
-          ]
-        }
-      ],
+      "verification_conditions": [],
       "original_text": "如图,正方形OABC绕着点O逆时针旋转40°得到正方形ODEF,连接AF,则∠OFA的度数是().",
       "cleaned_text": "正方形OABC绕着点O逆时针旋转40°得到正方形ODEF,连接AF.",
       "category": "Geometric Transformations",
@@ -11404,6 +11433,73 @@
       "difficulty": 2
     },
     {
+      "id": "221",
+      "subject": "(5分)已知,AC∥ED,∠C=26°,∠CBE=37°",
+      "required_objects": {
+        "points": [
+          "A",
+          "C",
+          "E",
+          "B",
+          "D"
+        ],
+        "segments": [],
+        "lines": [
+          [
+            "A",
+            "C"
+          ],
+          [
+            "E",
+            "D"
+          ]
+        ],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "parallel",
+          "objects": [
+            [
+              "A",
+              "C"
+            ],
+            [
+              "E",
+              "D"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "B",
+              "C",
+              "E"
+            ]
+          ],
+          "value": 37
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "D"
+            ]
+          ],
+          "value": 26
+        }
+      ],
+      "original_text": "(5分)已知,AC∥ED,∠C=26°,∠CBE=37°,则∠BED的度数是()",
+      "cleaned_text": "(5分)已知,AC∥ED,∠C=26°,∠CBE=37°",
+      "category": "Angle Relationships",
+      "difficulty": 2
+    },
+    {
       "id": "222",
       "subject": "在菱形ABCD中,M,N分别为AB、CD上,且AM=CN,MN与AC交于点O,连接BO.若∠DAC=28°",
       "required_objects": {
@@ -11524,6 +11620,22 @@
       "cleaned_text": "在菱形ABCD中,M,N分别为AB、CD上,且AM=CN,MN与AC交于点O,连接BO.若∠DAC=28°",
       "category": "Polygon Properties & Constructions",
       "difficulty": 3
+    },
+    {
+      "id": "223",
+      "subject": "有一长、宽、高分别为12cm,4cm,3cm的木箱,在它里面放一根细木条(木条的粗细忽略不计)要",
+      "required_objects": {
+        "points": [],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,有一长、宽、高分别为12cm,4cm,3cm的木箱,在它里面放一根细木条(木条的粗细忽略不计)要求木条不能露出木箱,请你算一算,能放入的细木条的最大长度是()",
+      "cleaned_text": "有一长、宽、高分别为12cm,4cm,3cm的木箱,在它里面放一根细木条(木条的粗细忽略不计)要",
+      "category": "Measurement & Ratios",
+      "difficulty": 1
     },
     {
       "id": "225",
@@ -12173,7 +12285,7 @@
       "cleaned_text": "⊙O为△ABC的外接圆,∠A=72°",
       "category": "Triangle Properties & Constructions",
       "difficulty": 1
-    },
+    },       
     {
       "id": "240",
       "subject": "AB∥CD,∠A=46°,∠C=27°",
@@ -12237,6 +12349,72 @@
       ],
       "original_text": "如图,AB∥CD,∠A=46°,∠C=27°,则∠AEC的大小应为()",
       "cleaned_text": "AB∥CD,∠A=46°,∠C=27°",
+      "category": "Angle Relationships",
+      "difficulty": 1
+    },
+    {
+      "id": "242",
+      "subject": "AD∥CB,∠D=43°,∠B=25°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "segments": [],
+        "lines": [
+          [
+            "A",
+            "D"
+          ],
+          [
+            "C",
+            "B"
+          ]
+        ],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "parallel",
+          "objects": [
+            [
+              "A",
+              "D"
+            ],
+            [
+              "C",
+              "B"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "C",
+              "D",
+              "B"
+            ]
+          ],
+          "value": 43
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "C",
+              "B",
+              "A"
+            ]
+          ],
+          "value": 25
+        }
+      ],
+      "original_text": "如图,AD∥CB,∠D=43°,∠B=25°,则∠DEB的度数为()",
+      "cleaned_text": "AD∥CB,∠D=43°,∠B=25°",
       "category": "Angle Relationships",
       "difficulty": 1
     },
@@ -12378,7 +12556,7 @@
     },
     {
       "id": "246",
-      "subject": "已知直线AB∥CD,直线EF与AB、CD相交于N,M两点,MG平分∠EMD,若∠BNE=30°",
+      "subject": "(3分)已知直线AB∥CD,直线EF与AB、CD相交于N,M两点,MG平分∠EMD,若∠BNE=30°",
       "required_objects": {
         "points": [
           "A",
@@ -12586,6 +12764,61 @@
       "difficulty": 2
     },
     {
+      "id": "249",
+      "subject": "为测量学校旗杆的高度,小东用长为3.2米的竹竿作测量工具,移动竹竿,使竹竿顶端与旗杆顶端的影子恰好落在地面的同一点,此时,竹竿与这一点相距8米,与旗杆相距22米米.",
+      "required_objects": {
+        "points": [
+          "旗杆顶端",
+          "竹竿顶端",
+          "影子顶端",
+          "地面同一点"
+        ],
+        "segments": [
+          [
+            "竹竿顶端",
+            "地面同一点"
+          ],
+          [
+            "旗杆顶端",
+            "地面同一点"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "竹竿顶端",
+            "地面同一点"
+          ],
+          "value": 3.2
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "竹竿顶端",
+            "地面同一点"
+          ],
+          "value": 8.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "旗杆顶端",
+            "地面同一点"
+          ],
+          "value": 22.0
+        }
+      ],
+      "original_text": "如图,为测量学校旗杆的高度,小东用长为3.2米的竹竿作测量工具,移动竹竿,使竹竿顶端与旗杆顶端的影子恰好落在地面的同一点,此时,竹竿与这一点相距8米,与旗杆相距22米,则旗杆的高度为()米.",
+      "cleaned_text": "为测量学校旗杆的高度,小东用长为3.2米的竹竿作测量工具,移动竹竿,使竹竿顶端与旗杆顶端的影子恰好落在地面的同一点,此时,竹竿与这一点相距8米,与旗杆相距22米米.",
+      "category": "Measurement & Ratios",
+      "difficulty": 2
+    },
+    {
       "id": "250",
       "subject": "在⊙O中,∠AOB=45°",
       "required_objects": {
@@ -12737,7 +12970,7 @@
     },
     {
       "id": "253",
-      "subject": "已知AB∥CD,E在CD上,BC平分∠ABE,∠BCD=34°,",
+      "subject": "已知AB∥CD,BC平分∠ABE,∠C=34°",
       "required_objects": {
         "points": [
           "A",
@@ -12796,14 +13029,6 @@
           ]
         },
         {
-          "type": "point_on_segment",
-          "point": "E",
-          "segment": [
-            "C",
-            "D"
-          ]
-        },
-        {
           "type": "angle_bisector",
           "line": [
             "B",
@@ -12831,6 +13056,74 @@
       "cleaned_text": "已知AB∥CD,BC平分∠ABE,∠C=34°",
       "category": "Angle Relationships",
       "difficulty": 3
+    },
+    {
+      "id": "254",
+      "subject": "AB∥CD,∠D=26°,∠E=35°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F"
+        ],
+        "segments": [],
+        "lines": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ]
+        ],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "parallel",
+          "objects": [
+            [
+              "A",
+              "B"
+            ],
+            [
+              "C",
+              "D"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "C",
+              "D",
+              "B"
+            ]
+          ],
+          "value": 26
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "D",
+              "E",
+              "F"
+            ]
+          ],
+          "value": 35
+        }
+      ],
+      "original_text": "如图所示,AB∥CD,∠D=26°,∠E=35°,则∠ABE的度数是()",
+      "cleaned_text": "AB∥CD,∠D=26°,∠E=35°",
+      "category": "Angle Relationships",
+      "difficulty": 1
     },
     {
       "id": "256",
@@ -13096,30 +13389,8 @@
           ]
         },
         {
-          "type": "angle_value",
-          "points": [
-            [
-              "A",
-              "C",
-              "A'"
-            ]
-          ],
-          "value": 90
-        },
-        {
-          "type": "angle_value",
-          "points": [
-            [
-              "B",
-              "C",
-              "B'"
-            ]
-          ],
-          "value": 90
-        },
-        {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "A",
               "B"
@@ -13128,8 +13399,8 @@
           "value": 1
         },
         {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "A",
               "C"
@@ -13138,8 +13409,8 @@
           "value": 2
         },
         {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "A",
               "B′"
@@ -13279,6 +13550,84 @@
       "cleaned_text": "以线段AB为边分别作直角三角形ABC和等边三角形ABD,其中∠ACB=90°.连接CD,当CD的长度最大时,此时∠CAB的大小是()",
       "category": "Triangle Properties & Constructions",
       "difficulty": 3
+    },
+    {
+      "id": "271",
+      "subject": "将一个长为10cm,宽为8cm的矩形纸片ABCD对折两次后,沿所得矩形两邻边中点的连线(虚线)剪下,再打开,得到的菱形ENFM的面积为()",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H",
+          "M",
+          "N"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "D",
+            "A"
+          ],
+          [
+            "M",
+            "N"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": [
+          [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          [
+            "M",
+            "N",
+            "P",
+            "Q"
+          ]
+        ]
+      },
+      "verification_conditions": [
+        {
+          "type": "midpoint_of",
+          "point": "M",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "midpoint_of",
+          "point": "N",
+          "segment": [
+            "B",
+            "C"
+          ]
+        }
+      ],
+      "original_text": "如图,将一个长为10cm,宽为8cm的矩形纸片对折两次后,沿所得矩形两邻边中点的连线(虚线)剪下,再打开,得到的菱形的面积为()",
+      "cleaned_text": "将一个长为10cm,宽为8cm的矩形纸片对折两次后,沿所得矩形两邻边中点的连线(虚线)剪下,再打开,得到的菱形的面积为()",
+      "category": "Polygon Properties & Constructions",
+      "difficulty": 2
     },
     {
       "id": "272",
@@ -13731,6 +14080,54 @@
       "difficulty": 3
     },
     {
+      "id": "281",
+      "subject": "分别以直角三角形各边为一边向三角形外部作正方形,其中两个小正方形的面积分别为9和25",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": [
+          [
+            "A",
+            "B",
+            "C"
+          ]
+        ]
+      },
+      "verification_conditions": [
+        {
+          "type": "triangle_valid",
+          "points": [
+            "A",
+            "B",
+            "C"
+          ]
+        }
+      ],
+      "original_text": "如图,分别以直角三角形各边为一边向三角形外部作正方形,其中两个小正方形的面积分别为9和25,则正方形A的面积是()",
+      "cleaned_text": "分别以直角三角形各边为一边向三角形外部作正方形,其中两个小正方形的面积分别为9和25",
+      "category": "Polygon Properties & Constructions",
+      "difficulty": 3
+    },
+    {
       "id": "282",
       "subject": "△ABE≌△ACD,AB=AC,BE=CD,∠B=50°,∠AEC=120°",
       "required_objects": {
@@ -14113,8 +14510,7 @@
         ],
         "circles": [
           {
-            "center": "O",
-            "radius_point": "C"
+            "center": "O"
           }
         ],
         "polygons": [
@@ -14194,6 +14590,73 @@
       "cleaned_text": "△ABC的边AC与⊙O相交于C、D两点,且经过圆心O,边AB与⊙O相切,切点为B.如果∠A=34°,那么∠C等于()",
       "category": "Circle Properties & Constructions",
       "difficulty": 3
+    },
+    {
+      "id": "289",
+      "subject": "为测量某树的高度,小明用长为2m的竹竿作测量工具,移动竹竿,使竹竿顶端、树的顶端的影子恰好落在地面的同一点O,此时竹竿与这一点相距6m,与树相距15m",
+      "required_objects": {
+        "points": [
+          "T",
+          "B",
+          "O",
+          "S"
+        ],
+        "segments": [
+          [
+            "B",
+            "O"
+          ],
+          [
+            "T",
+            "O"
+          ],
+          [
+            "S",
+            "O"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "T"
+          ],
+          "value": 2.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "O"
+          ],
+          "value": 6.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "S",
+            "O"
+          ],
+          "value": 15.0
+        },
+        {
+          "type": "point_on_segment",
+          "point": "O",
+          "segment": [
+            "T",
+            "S"
+          ]
+        }
+      ],
+      "original_text": "如图,为测量某树的高度,小明用长为2m的竹竿作测量工具,移动竹竿,使竹竿顶端、树的顶端的影子恰好落在地面的同一点O,此时竹竿与这一点相距6m,与树相距15m,则树的高度为()",
+      "cleaned_text": "为测量某树的高度,小明用长为2m的竹竿作测量工具,移动竹竿,使竹竿顶端、树的顶端的影子恰好落在地面的同一点O,此时竹竿与这一点相距6m,与树相距15m",
+      "category": "Measurement & Ratios",
+      "difficulty": 2
     },
     {
       "id": "291",
@@ -14415,6 +14878,64 @@
       "cleaned_text": "在△ABC和△DCB中,∠A=∠D=90°,AB=CD,∠ACB=30°",
       "category": "Triangle Properties & Constructions",
       "difficulty": 3
+    },
+    {
+      "id": "295",
+      "subject": "为了测量某棵树的高度,小刚用长为2m的竹竿作测量工具,移动竹竿,使竹竿、树的顶端的影子恰好落在地面的同一点,此时,竹竿与这一点相距6m,与树距15m,那么这颗树的高度为()",
+      "required_objects": {
+        "points": [
+          "T",
+          "P",
+          "S"
+        ],
+        "segments": [
+          [
+            "T",
+            "P"
+          ],
+          [
+            "T",
+            "S"
+          ],
+          [
+            "P",
+            "S"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "P",
+            "S"
+          ],
+          "value": 2.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "P",
+            "T"
+          ],
+          "value": 6.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "T",
+            "S"
+          ],
+          "value": 15.0
+        }
+      ],
+      "original_text": "如图,为了测量某棵树的高度,小刚用长为2m的竹竿作测量工具,移动竹竿,使竹竿、树的顶端的影子恰好落在地面的同一点,此时,竹竿与这一点相距6m,与树距15m,那么这颗树的高度为()",
+      "cleaned_text": "为了测量某棵树的高度,小刚用长为2m的竹竿作测量工具,移动竹竿,使竹竿、树的顶端的影子恰好落在地面的同一点,此时,竹竿与这一点相距6m,与树距15m,那么这颗树的高度为()",
+      "category": "Measurement & Ratios",
+      "difficulty": 2
     },
     {
       "id": "298",
@@ -15165,7 +15686,7 @@
     },
     {
       "id": "307",
-      "subject": "小明设计用手电来测量某古城墙高度的示意图,点P处放一水平的平面镜,光线从点A出发经平面镜反射后刚好射到古城墙CD的顶端C处,已知AB⊥BD,CD⊥BD,且测得AB=1.2米,BP=1.8米,PD=12米",
+      "subject": "是小明设计用手电来测量某古城墙高度的示意图,点P处放一水平的平面镜,光线从点A出发经平面镜反射后刚好射到古城墙CD的顶端C处,已知AB⊥BD,CD⊥BD,且测得AB=1.2米,BP=1.8米,PD=12米,那么该古城墙的高度是()",
       "required_objects": {
         "points": [
           "A",
@@ -17084,6 +17605,35 @@
       "difficulty": 3
     },
     {
+      "id": "356",
+      "subject": "一艘轮船由海平面上A地出发向南偏西40°的方向行驶40海里到达B地,再由B地向北偏西20°的方向行驶40海里到达C地",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图一艘轮船由海平面上A地出发向南偏西40°的方向行驶40海里到达B地,再由B地向北偏西20°的方向行驶40海里到达C地,则A、C两地相距()",
+      "cleaned_text": "一艘轮船由海平面上A地出发向南偏西40°的方向行驶40海里到达B地,再由B地向北偏西20°的方向行驶40海里到达C地",
+      "category": "Measurement & Ratios",
+      "difficulty": 2
+    },
+    {
       "id": "359",
       "subject": ":AB∥DE,∠B=30°,∠C=110°,∠D的度数为()",
       "required_objects": {
@@ -17811,6 +18361,54 @@
       },
       "verification_conditions": [
         {
+          "type": "point_on_segment",
+          "point": "A",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "B",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "C",
+          "segment": [
+            "C",
+            "D"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "C",
+            "D"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "C",
+          "segment": [
+            "O",
+            "C"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "O",
+            "D"
+          ]
+        },
+        {
           "type": "angle_value",
           "points": [
             [
@@ -17822,22 +18420,52 @@
           "value": 35
         },
         {
-          "type": "midpoint_of",
-          "point": "O",
+          "type": "point_on_segment",
+          "point": "C",
+          "segment": [
+            "O",
+            "C"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "O",
+            "D"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "C",
+          "segment": [
+            "C",
+            "D"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "C",
+            "D"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "A",
           "segment": [
             "A",
             "B"
           ]
         },
         {
-          "type": "point_on_circle",
-          "point": "C",
-          "circle_center": "O"
-        },
-        {
-          "type": "point_on_circle",
-          "point": "D",
-          "circle_center": "O"
+          "type": "point_on_segment",
+          "point": "B",
+          "segment": [
+            "A",
+            "B"
+          ]
         }
       ],
       "category": "Circle Properties & Constructions",
@@ -18183,13 +18811,16 @@
       },
       "verification_conditions": [
         {
-          "type": "tangent_at_point",
+          "type": "tangent",
           "point": "A",
           "line": [
             "A",
             "B"
           ],
-          "circle_center": "O"
+          "circle": {
+            "center": "O",
+            "radius_point": "A"
+          }
         },
         {
           "type": "point_on_circle",
@@ -18833,6 +19464,7 @@
           "type": "geometric_transformation",
           "transformation": "rotation",
           "center": "C",
+          "direction": "clockwise",
           "preimage_points": [
             "A",
             "B",
@@ -19267,7 +19899,8 @@
             "D",
             "E"
           ],
-          "value": 8
+          "value": 8,
+          "unit": "cm"
         },
         {
           "type": "distance_equals",
@@ -19275,7 +19908,8 @@
             "D",
             "B"
           ],
-          "value": 10
+          "value": 10,
+          "unit": "cm"
         }
       ],
       "category": "Triangle Properties & Constructions",
@@ -19567,19 +20201,25 @@
         },
         {
           "type": "distance_equals",
-          "segment": [
-            "M",
-            "N"
+          "segments": [
+            [
+              "M",
+              "N"
+            ]
           ],
-          "value": 6
+          "value": 6,
+          "unit": "cm"
         },
         {
           "type": "distance_equals",
-          "segment": [
-            "B",
-            "C"
+          "segments": [
+            [
+              "B",
+              "C"
+            ]
           ],
-          "value": 1
+          "value": 1,
+          "unit": "cm"
         },
         {
           "type": "collinear",
@@ -19959,7 +20599,8 @@
             "D",
             "E"
           ],
-          "value": 58
+          "value": 58,
+          "unit": "meters"
         }
       ],
       "category": "Measurement & Ratios",
@@ -20319,12 +20960,12 @@
           ]
         },
         {
-          "type": "tangent_at_point",
+          "type": "tangent_point",
+          "point": "C",
           "line": [
             "P",
             "C"
           ],
-          "tangent_point": "C",
           "circle_center": "O"
         },
         {
@@ -21006,7 +21647,7 @@
           "circle_center": "O"
         },
         {
-          "type": "diameter",
+          "type": "segment_is_diameter",
           "segment": [
             "A",
             "B"
@@ -21025,7 +21666,7 @@
           "value": 120
         },
         {
-          "type": "tangent",
+          "type": "tangent_line",
           "line": [
             "P",
             "D"
@@ -21223,7 +21864,8 @@
           "line_segment": [
             "B",
             "C"
-          ]
+          ],
+          "extension_side": "beyond C"
         }
       ],
       "category": "Triangle Properties & Constructions",
@@ -21286,19 +21928,23 @@
         },
         {
           "type": "distance_equals",
-          "segment": [
-            "A",
-            "B"
-          ],
-          "value": 8
+          "segments": [
+            [
+              "A",
+              "B"
+            ],
+            8
+          ]
         },
         {
           "type": "distance_equals",
-          "segment": [
-            "B",
-            "C"
-          ],
-          "value": 10
+          "segments": [
+            [
+              "B",
+              "C"
+            ],
+            10
+          ]
         }
       ],
       "category": "Geometric Transformations",
@@ -21775,14 +22421,14 @@
       },
       "verification_conditions": [
         {
-          "type": "polygon_property",
+          "type": "polygon_type",
           "polygon": [
             "A",
             "B",
             "C",
             "D"
           ],
-          "property": "rhombus"
+          "value": "rhombus"
         },
         {
           "type": "distance_equals",
@@ -22225,7 +22871,7 @@
       },
       "verification_conditions": [
         {
-          "type": "polygon_property",
+          "type": "polygon_type",
           "polygon": [
             "A",
             "B",
@@ -22280,7 +22926,7 @@
         {
           "type": "point_on_line_extension",
           "point": "E",
-          "line_segment": [
+          "line": [
             "B",
             "C"
           ]
@@ -22826,7 +23472,7 @@
         "circles": [
           {
             "center": "O",
-            "radius_length": 6
+            "radius": 6
           }
         ],
         "polygons": [
@@ -23010,7 +23656,7 @@
             "O",
             "P"
           ],
-          "value": 6
+          "distance_equals": 6
         }
       ],
       "category": "Circle Properties & Constructions",
@@ -23148,13 +23794,6 @@
               "A",
               "C"
             ]
-          ]
-        },
-        {
-          "type": "distance_equals",
-          "segment": [
-            "A",
-            "B"
           ],
           "value": 8
         },
@@ -23309,17 +23948,21 @@
         },
         {
           "type": "distance_equals",
-          "segment": [
-            "A",
-            "B"
+          "segments": [
+            [
+              "A",
+              "B"
+            ]
           ],
           "value": 4
         },
         {
           "type": "distance_equals",
-          "segment": [
-            "B",
-            "C"
+          "segments": [
+            [
+              "B",
+              "C"
+            ]
           ],
           "value": 3
         }
@@ -23845,7 +24488,8 @@
             "A",
             "C"
           ],
-          "value": 7
+          "value": 7,
+          "unit": "cm"
         }
       ],
       "category": "Triangle Properties & Constructions",
@@ -24143,7 +24787,7 @@
           "circle_center": "O"
         },
         {
-          "type": "diameter",
+          "type": "segment_is_diameter",
           "segment": [
             "A",
             "B"
@@ -24164,7 +24808,7 @@
           ]
         },
         {
-          "type": "tangent",
+          "type": "line_is_tangent",
           "line": [
             "C",
             "D"
@@ -24277,7 +24921,16 @@
           ]
         ],
         "lines": [],
-        "circles": [],
+        "circles": [
+          {
+            "center": "I",
+            "tangent_points": [
+              "D",
+              "E",
+              "F"
+            ]
+          }
+        ],
         "polygons": [
           [
             "A",
@@ -24323,28 +24976,28 @@
           ]
         },
         {
-          "type": "tangent_at_point",
+          "type": "tangent",
           "circle_center": "I",
           "point": "D",
-          "line": [
+          "segment": [
             "B",
             "C"
           ]
         },
         {
-          "type": "tangent_at_point",
+          "type": "tangent",
           "circle_center": "I",
           "point": "E",
-          "line": [
+          "segment": [
             "C",
             "A"
           ]
         },
         {
-          "type": "tangent_at_point",
+          "type": "tangent",
           "circle_center": "I",
           "point": "F",
-          "line": [
+          "segment": [
             "A",
             "B"
           ]
@@ -24638,7 +25291,7 @@
           "circle_center": "O"
         },
         {
-          "type": "midpoint_of_arc",
+          "type": "point_on_arc_midpoint",
           "point": "C",
           "arc": [
             "A",
@@ -24782,7 +25435,8 @@
             "B",
             "D"
           ],
-          "value": 5
+          "value": 5,
+          "unit": "cm"
         },
         {
           "type": "distance_equals",
@@ -24790,7 +25444,8 @@
             "D",
             "E"
           ],
-          "value": 3
+          "value": 3,
+          "unit": "cm"
         }
       ],
       "category": "Triangle Properties & Constructions",
@@ -27426,6 +28081,29 @@
       "difficulty": 2
     },
     {
+      "id": "826",
+      "subject": "A,B,C,D,E,F是平面上的6个点",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F"
+        ],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,A,B,C,D,E,F是平面上的6个点,则∠A+∠B+∠C+∠D+∠E的度数是()",
+      "cleaned_text": "A,B,C,D,E,F是平面上的6个点",
+      "category": "Basic Constructions",
+      "difficulty": 1
+    },
+    {
       "id": "829",
       "subject": "在半径为5cm的⊙O中,AB为一条弦,OC⊥AB于点C,且OC=3cm",
       "required_objects": {
@@ -28996,6 +29674,22 @@
       "difficulty": 2
     },
     {
+      "id": "879",
+      "subject": "位似图形由三角尺与其在灯光照射下的中心投影组成,相似比为1:2,且三角尺一边长为5cm",
+      "required_objects": {
+        "points": [],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,位似图形由三角尺与其在灯光照射下的中心投影组成,相似比为1:2,且三角尺一边长为5cm,则投影三角形的对应边长为()",
+      "cleaned_text": "位似图形由三角尺与其在灯光照射下的中心投影组成,相似比为1:2,且三角尺一边长为5cm",
+      "category": "Similarity & Congruence",
+      "difficulty": 2
+    },
+    {
       "id": "880",
       "subject": "PA,PB分别与⊙O相切于A,B点,C为⊙O上一点,∠P=66°",
       "required_objects": {
@@ -29285,6 +29979,49 @@
       "cleaned_text": "在△ABC中,DE是AC的垂直平分线,AE=3cm,△ABD的周长为13cm",
       "category": "Triangle Properties & Constructions",
       "difficulty": 2
+    },
+    {
+      "id": "886",
+      "subject": "AB是⊙O的直径,CD是弦,如果弧AC=弧AD,∠C比∠D大36°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "O",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "A",
+            "D"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,AB是⊙O的直径,CD是弦,如果弧AC=弧AD,∠C比∠D大36°,则∠A等于()",
+      "cleaned_text": "AB是⊙O的直径,CD是弦,如果弧AC=弧AD,∠C比∠D大36°",
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3
     },
     {
       "id": "887",
@@ -30658,9 +31395,9 @@
         {
           "type": "perimeter",
           "polygon": [
-            "A",
-            "D",
-            "C"
+              "A",
+              "D",
+              "C"
           ],
           "value": 15.0
         },
@@ -31132,6 +31869,24 @@
       "cleaned_text": "一个2.5米长的梯子,底端D放在距离墙根C点1.5米处,另一头E点靠墙,如果梯子的底部向墙移动0.8米,梯子的另一端向上移动()米.",
       "category": "Measurement & Ratios",
       "difficulty": 1
+    },
+    {
+      "id": "940",
+      "subject": "小明从A点出发,沿直线前进10米后向左转36°,再沿直线前进10米,再向左转36°……照这样走下去,他第一次回到出发点A点时,一共走的路程是()",
+      "required_objects": {
+        "points": [
+          "A"
+        ],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图,小明从A点出发,沿直线前进10米后向左转36°,再沿直线前进10米,再向左转36°……照这样走下去,他第一次回到出发点A点时,一共走的路程是()",
+      "cleaned_text": "小明从A点出发,沿直线前进10米后向左转36°,再沿直线前进10米,再向左转36°……照这样走下去,他第一次回到出发点A点时,一共走的路程是()",
+      "category": "Geometric Transformations",
+      "difficulty": 3
     },
     {
       "id": "942",
@@ -31909,8 +32664,7 @@
         ],
         "circles": [
           {
-            "center": "O",
-            "radius_point": "E"
+            "center": "O"
           }
         ],
         "polygons": []
@@ -32287,6 +33041,31 @@
       "original_text": "如图,圆外切等腰梯形ABCD的中位线EF=15cm,那么等腰梯形ABCD的周长等于()",
       "cleaned_text": "圆外切等腰梯形ABCD的中位线EF=15cm,那么等腰梯形ABCD的周长等于()",
       "category": "Polygon Properties & Constructions",
+      "difficulty": 2
+    },
+    {
+      "id": "969",
+      "subject": "某轮船由西向东航行,在A处测得小岛P的方位是北偏东75°,继续航行7海里后,在B处测得小岛P的方位是北偏东60°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "P"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "某轮船由西向东航行,在A处测得小岛P的方位是北偏东75°,继续航行7海里后,在B处测得小岛P的方位是北偏东60°,则此时轮船与小岛P的距离BP=()",
+      "cleaned_text": "某轮船由西向东航行,在A处测得小岛P的方位是北偏东75°,继续航行7海里后,在B处测得小岛P的方位是北偏东60°",
+      "category": "Measurement & Ratios",
       "difficulty": 2
     },
     {
@@ -35098,8 +35877,8 @@
       },
       "verification_conditions": [
         {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "A",
               "B"
@@ -35108,8 +35887,8 @@
           "value": 6
         },
         {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "B",
               "C"
@@ -36133,8 +36912,8 @@
           ]
         },
         {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "A",
               "B"
@@ -36143,8 +36922,8 @@
           "value": 9
         },
         {
-          "type": "distance_equals",
-          "segment": [
+          "type": "segment_equality",
+          "segments": [
             [
               "B",
               "C"
@@ -37109,7 +37888,7 @@
           ]
         },
         {
-          "type": "angle_sum",
+          "type": "angle_sum", 
           "angles": [
             {
               "points": [
@@ -38621,6 +39400,139 @@
       "difficulty": 3
     },
     {
+      "id": "1130",
+      "subject": "一条公路两次转弯后又回到原来的方向,若第一次转弯时∠B=140°",
+      "required_objects": {
+        "points": [
+          "B"
+        ],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "unknown",
+              "B",
+              "unknown"
+            ]
+          ],
+          "value": 140
+        }
+      ],
+      "original_text": "如图,一条公路两次转弯后又回到原来的方向,若第一次转弯时∠B=140°,则∠C的度数()",
+      "cleaned_text": "一条公路两次转弯后又回到原来的方向,若第一次转弯时∠B=140°",
+      "category": "Angle Relationships",
+      "difficulty": 2
+    },
+    {
+      "id": "1131",
+      "subject": "是一株美丽的勾股树,其中所有的四边形都是正方形,所有的三角形都是直角三角形,若正方形A．B、C、D的面积分别为2,5,1,2．.",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": [
+          [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        ]
+      },
+      "verification_conditions": [
+        {
+          "type": "square",
+          "polygons": [
+            [
+              "A",
+              "B",
+              "C",
+              "D"
+            ]
+          ]
+        },
+        {
+          "type": "right_triangle",
+          "polygons": []
+        }
+      ],
+      "original_text": "如图所示,是一株美丽的勾股树,其中所有的四边形都是正方形,所有的三角形都是直角三角形,若正方形A．B、C、D的面积分别为2,5,1,2．则最大的正方形E的面积是().",
+      "cleaned_text": "是一株美丽的勾股树,其中所有的四边形都是正方形,所有的三角形都是直角三角形,若正方形A．B、C、D的面积分别为2,5,1,2．.",
+      "category": "Polygon Properties & Constructions",
+      "difficulty": 3
+    },
+    {
+      "id": "1132",
+      "subject": "测得BD=120m,DC=60m,EC=50m",
+      "required_objects": {
+        "points": [
+          "B",
+          "D",
+          "C",
+          "E"
+        ],
+        "segments": [
+          [
+            "B",
+            "D"
+          ],
+          [
+            "D",
+            "C"
+          ],
+          [
+            "E",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "D"
+          ],
+          "value": 120.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "D",
+            "C"
+          ],
+          "value": 60.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "E",
+            "C"
+          ],
+          "value": 50.0
+        }
+      ],
+      "original_text": "如图,测得BD=120m,DC=60m,EC=50m,则小河宽AB的长是()",
+      "cleaned_text": "测得BD=120m,DC=60m,EC=50m",
+      "category": "Measurement & Ratios",
+      "difficulty": 1
+    },
+    {
       "id": "1133",
       "subject": "⊙O的半径OC垂直于弦AB,D是优弧AB上的一点(不与点A,B重合),若∠BOC=50°",
       "required_objects": {
@@ -39428,6 +40340,90 @@
       "cleaned_text": "在△ABC中,∠A=∠B=50°,AK=BN,AM=BK",
       "category": "Triangle Properties & Constructions",
       "difficulty": 2
+    },
+    {
+      "id": "1144",
+      "subject": "工程上常用钢珠来测量零件上小圆孔的宽口,假设钢珠的直径是10mm,测得钢珠顶端离零件表面的距离为8mm,．",
+      "required_objects": {
+        "points": [],
+        "segments": [],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [],
+      "original_text": "如图工程上常用钢珠来测量零件上小圆孔的宽口,假设钢珠的直径是10mm,测得钢珠顶端离零件表面的距离为8mm,如图所示．则这个小圆孔的宽口AB的长度是()",
+      "cleaned_text": "工程上常用钢珠来测量零件上小圆孔的宽口,假设钢珠的直径是10mm,测得钢珠顶端离零件表面的距离为8mm,．",
+      "category": "Measurement & Ratios",
+      "difficulty": 2
+    },
+    {
+      "id": "1145",
+      "subject": "△ABC中,点O是△ABC内一点,且点O到△ABC三边的距离相等,∠A=40°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "O"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": [
+          [
+            "A",
+            "B",
+            "C"
+          ]
+        ]
+      },
+      "verification_conditions": [
+        {
+          "type": "triangle_valid",
+          "points": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "B",
+              "A",
+              "C"
+            ]
+          ],
+          "value": 40
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "O",
+            "AB"
+          ],
+          "value": "equal distances to three sides"
+        }
+      ],
+      "original_text": "△ABC中,点O是△ABC内一点,且点O到△ABC三边的距离相等,∠A=40°,则∠BOC的大小为()",
+      "cleaned_text": "△ABC中,点O是△ABC内一点,且点O到△ABC三边的距离相等,∠A=40°",
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 3
     },
     {
       "id": "1146",

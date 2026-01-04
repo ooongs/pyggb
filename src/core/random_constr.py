@@ -256,12 +256,12 @@ class ConstCommand:
         return "const {} {} -> {}".format(datatype_str, self.value, self.label)
 
 def parse_command(line, element_dict, line_number=None):
-    # 주석 제거 (# 이후의 내용 무시)
+    # Discard comments
     if '#' in line:
         line = line[:line.index('#')]
     
     tokens = line.split()
-    if len(tokens) == 0:  # 빈 줄 처리
+    if len(tokens) == 0:  # Handle empty lines
         return None
     if tokens[0] == "const":
         if len(tokens) != 5:

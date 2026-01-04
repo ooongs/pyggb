@@ -195,18 +195,45 @@ class ReActAgent:
                 return f.read()
         return ""
 
-    def solve(self, problem: BenchmarkProblem) -> Dict[str, Any]:
+    def solve(
+        self,
+        problem: BenchmarkProblem,
+        resume_memory: Optional[AgentMemory] = None,
+        start_iteration: int = 1,
+        reexecute_last_iteration: bool = False
+    ) -> Dict[str, Any]:
         """
         Solve a geometry problem using ReAct loop.
 
         Args:
             problem: BenchmarkProblem to solve
+            resume_memory: Pre-loaded memory to resume from (optional)
+            start_iteration: Iteration number to start from (default: 1)
+            reexecute_last_iteration: If True, re-execute DSL from last loaded iteration (default: False)
 
         Returns:
             Dictionary with results
         """
-        # Initialize memory
-        memory = AgentMemory(problem.id, problem.subject)
+        # Initialize or resume memory
+        if resume_memory is not None:
+            # Validate problem_id matches
+            if resume_memory.problem_id != problem.id:
+                raise ValueError(
+                    f"Resume memory problem_id ({resume_memory.problem_id}) "
+                    f"does not match current problem_id ({problem.id})"
+                )
+            memory = resume_memory
+            if self.verbose:
+                print(f"\n{'='*70}")
+                print(f"📂 RESUMING from previous session")
+                print(f"{'='*70}")
+                print(f"Loaded steps: {len(memory.steps)}")
+                if reexecute_last_iteration and len(memory.steps) > 0:
+                    print(f"Will re-execute iteration {len(memory.steps)} DSL code")
+                print(f"Starting from iteration: {max(start_iteration, len(memory.steps) + 1)}")
+                print(f"{'='*70}\n")
+        else:
+            memory = AgentMemory(problem.id, problem.subject)
 
         # Start logging
         session_id = self.logger.start_problem(problem.id, problem.subject)
@@ -219,8 +246,76 @@ class ReActAgent:
             print(f"Session ID: {session_id}")
             print()
 
+        # Re-execute last iteration DSL if requested
+        if reexecute_last_iteration and len(memory.steps) > 0:
+            last_step = memory.steps[-1]
+            last_iteration = last_step.iteration
+
+            if self.verbose:
+                print(f"\n{'='*70}")
+                print(f"🔄 RE-EXECUTING Iteration {last_iteration} DSL")
+                print(f"{'='*70}")
+                print(f"Action type: {last_step.action.action_type}")
+                print(f"\nDSL Code:")
+                print("```")
+                print(last_step.action.content[:500] + ("..." if len(last_step.action.content) > 500 else ""))
+                print("```\n")
+
+            # Get DSL code from last action
+            dsl_code = last_step.action.content
+
+            # Execute DSL
+            exec_result = self.executor.execute(
+                dsl_code, problem_id=problem.id, iteration=last_iteration
+            )
+
+            # Validate if successful
+            validation_result = None
+            if exec_result.success:
+                validation_result = self._validate_solution(dsl_code, problem)
+                memory.final_dsl = dsl_code
+
+            # Load image as base64 if exists and vision is enabled
+            image_base64 = None
+            if self.use_vision and exec_result.image_path and os.path.exists(exec_result.image_path):
+                import base64
+                with open(exec_result.image_path, "rb") as img_file:
+                    image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+
+            # Create new observation
+            new_observation = Observation(
+                success=exec_result.success,
+                has_image=exec_result.image_path is not None,
+                error=exec_result.error,
+                validation_result=validation_result,
+                image_base64=image_base64,
+                stdout=exec_result.stdout,
+                stderr=exec_result.stderr,
+            )
+
+            # Replace last step's observation
+            memory.steps[-1].observation = new_observation
+
+            if self.verbose:
+                result_str = "✓ SUCCESS" if exec_result.success else "✗ FAILED"
+                print(f"Re-execution result: {result_str}")
+                if exec_result.error:
+                    print(f"Error: {exec_result.error}")
+                if validation_result:
+                    print(f"Validation score: {validation_result['total_score']:.2%}")
+                print(f"{'='*70}\n")
+
         # Main ReAct loop
-        for iteration in range(1, self.max_iterations + 1):
+        # Calculate actual start iteration (handle resume case)
+        actual_start = max(start_iteration, len(memory.steps) + 1)
+
+        # Validate start_iteration
+        if actual_start > self.max_iterations:
+            raise ValueError(
+                f"Start iteration ({actual_start}) exceeds max_iterations ({self.max_iterations})"
+            )
+
+        for iteration in range(actual_start, self.max_iterations + 1):
             if self.verbose:
                 print(f"\n--- Iteration {iteration}/{self.max_iterations} ---")
 

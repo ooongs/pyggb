@@ -132,7 +132,7 @@ point :  -> B
 segment : A B -> seg_AB
 """)
 
-# With mathematical expressions (NEW!)
+# With mathematical expressions 
 executor.execute("""
 point : 0 0 -> O
 point : 100*cos(0°) 100*sin(0°) -> A
