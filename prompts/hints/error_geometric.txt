@@ -1,0 +1,95 @@
+### ⚠️ Geometric Construction Error
+
+Your DSL code attempted to create an impossible or invalid geometric object.
+
+**Common geometric impossibilities:**
+
+1. **Identical Points Creating Segment/Line**
+```dsl
+# WRONG - P and Q are the same point
+point : 50 50 -> P
+point : 50 50 -> Q
+segment : P Q -> seg  # Error: cannot create segment from identical points
+```
+**Fix**: Ensure points are distinct
+```dsl
+# CORRECT
+point : 50 50 -> P
+point : 100 50 -> Q
+segment : P Q -> seg  # Works: P ≠ Q
+```
+
+**Common cause**: Circle-line intersection where line passes through circle center
+```dsl
+# Example from your error:
+circle : O A -> circle_OA
+line : C O -> line_CO  # Line passes through circle center O
+intersect : line_CO circle_OA -> P  # P = O (line through center intersects at center)
+segment : P O -> PO  # Error: P and O are the same point!
+```
+
+2. **Parallel Lines Intersection**
+```dsl
+# WRONG - lines are parallel
+line : A B -> line1
+parallel_line : C line1 -> line2
+intersect : line1 line2 -> P  # Error: parallel lines don't intersect
+```
+**Fix**: Use non-parallel lines or check geometry first
+```dsl
+# CORRECT - use different construction
+line : A B -> line1
+line : C D -> line2  # Not parallel
+intersect : line1 line2 -> P  # Works if lines aren't parallel
+```
+
+3. **Zero or Negative Radius Circle**
+```dsl
+# WRONG
+circle : O 0 -> c  # Error: radius must be positive
+circle : O -5 -> c  # Error: radius must be positive
+```
+**Fix**: Use positive radius
+```dsl
+# CORRECT
+circle : O 50 -> c  # Works
+```
+
+4. **Polar Line of Circle Center**
+```dsl
+# WRONG - P is at circle center
+circle : O 50 -> circle_O
+polar : O circle_O -> line  # Error: polar of center is undefined
+```
+**Fix**: Use a point not at the center
+```dsl
+# CORRECT
+point : 100 0 -> P  # Point not at center
+polar : P circle_O -> line  # Works
+```
+
+5. **Intersection Outside Ray/Segment Bounds**
+```dsl
+# Ray/segment intersection may not exist within bounds
+line : A B -> line1
+segment : C D -> seg1
+intersect : line1 seg1 -> P  # May fail if intersection is outside segment CD
+```
+**Fix**: Use full lines instead, or ensure intersection is within bounds
+```dsl
+# Option 1: Use full lines
+line : A B -> line1
+line : C D -> line2
+intersect : line1 line2 -> P  # Works: infinite lines always intersect (if not parallel)
+
+# Option 2: Check construction ensures intersection is within bounds
+```
+
+**Debugging Tips:**
+
+1. **Check point coordinates**: Print or verify that points you think are different actually have different coordinates
+2. **Visualize construction**: Use the preview to see where points actually end up
+3. **Break down complex constructions**: If an intersection creates a point that causes problems, check what that intersection actually produces
+4. **Use angle/distance checks**: Before creating geometric objects, verify constraints are satisfied
+
+**General Rule**: Verify your geometric construction is mathematically valid before attempting to create derived objects!

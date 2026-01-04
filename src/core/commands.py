@@ -220,7 +220,14 @@ def equality_si(s, i): # !!!
 def intersect_ll(line1, line2):
     matrix = np.stack((line1.n, line2.n))
     b = np.array((line1.c, line2.c))
-    assert(not np.isclose(np.linalg.det(matrix), 0))
+    det = np.linalg.det(matrix)
+    if np.isclose(det, 0):
+        raise ValueError(
+            f"Cannot find intersection of parallel lines. "
+            f"Line 1 normal: ({line1.n[0]:.4f}, {line1.n[1]:.4f}), "
+            f"Line 2 normal: ({line2.n[0]:.4f}, {line2.n[1]:.4f}), "
+            f"Determinant: {det:.6f}"
+        )
     return gt.Point(np.linalg.solve(matrix, b))
 
 def intersect_lc(line, circle):
@@ -318,29 +325,57 @@ def intersect_cr(circle, ray):
 
 def intersect_lr(line, ray):
     result = intersect_ll(line, ray)
-    assert(ray.contains(result.a))
+    if not ray.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the ray. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
     return result
 
 def intersect_ls(line, segment):
     result = intersect_ll(line, segment)
-    assert(segment.contains(result.a))
+    if not segment.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the segment. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
     return result
 
 def intersect_rl(ray, line):
     result = intersect_ll(ray, line)
-    assert(ray.contains(result.a))
+    if not ray.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the ray. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
     return result
 
 def intersect_rr(r1, r2):
     result = intersect_ll(r1, r2)
-    assert(r1.contains(result.a))
-    assert(r2.contains(result.a))
+    if not r1.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the first ray. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
+    if not r2.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the second ray. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
     return result
 
 def intersect_rs(ray, segment):
     result = intersect_ll(ray, segment)
-    assert(ray.contains(result.a))
-    assert(segment.contains(result.a))
+    if not ray.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the ray. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
+    if not segment.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the segment. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
     return result
 
 def intersect_sl(segment, line):
@@ -351,14 +386,26 @@ def intersect_sr(segment, ray):
 
 def intersect_ss(s1, s2):
     result = intersect_ll(s1, s2)
-    assert(s1.contains(result.a))
-    assert(s2.contains(result.a))
+    if not s1.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the first segment. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
+    if not s2.contains(result.a):
+        raise ValueError(
+            f"Intersection point is outside the second segment. "
+            f"Intersection at: ({result.a[0]:.4f}, {result.a[1]:.4f})"
+        )
     return result
 
 def line_bisector_pp(p1, p2):
     p = (p1.a+p2.a)/2
     n = p2.a-p1.a
-    assert((n != 0).any())
+    if not (n != 0).any():
+        raise ValueError(
+            f"Cannot create perpendicular bisector of identical points. "
+            f"Both points at: ({p1.a[0]:.4f}, {p1.a[1]:.4f})"
+        )
     return gt.Line(n, np.dot(n,p))
 
 def line_bisector_s(segment):
@@ -371,7 +418,11 @@ def line_pl(point, line):
     return gt.Line(line.n, np.dot(line.n, point.a))
 
 def line_pp(p1, p2):
-    assert((p1.a != p2.a).any())
+    if not (p1.a != p2.a).any():
+        raise ValueError(
+            f"Cannot create line through identical points. "
+            f"Both points at: ({p1.a[0]:.4f}, {p1.a[1]:.4f})"
+        )
     n = gt.vector_perp_rot(p1.a-p2.a)
     return gt.Line(n, np.dot(p1.a, n))
 
@@ -515,7 +566,11 @@ def point_s(segment):
 
 def polar_pc(point, circle):
     n = point.a - circle.c
-    assert(not np.isclose(n, 0).all())
+    if np.isclose(n, 0).all():
+        raise ValueError(
+            f"Cannot create polar line of circle's center point. "
+            f"Point is at circle center: ({circle.c[0]:.4f}, {circle.c[1]:.4f})"
+        )
     return gt.Line(n, np.dot(n, circle.c) + circle.r_squared)
 
 def polygon_ppi(p1, p2, n):

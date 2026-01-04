@@ -37,7 +37,11 @@ class Point:
 class Line:
     def __init__(self, n, c):
         self.n = np.array(n, dtype=float)  # Ensure float for division
-        assert((self.n != 0).any())
+        if not (self.n != 0).any():
+            raise ValueError(
+                f"Cannot create line with zero normal vector. "
+                f"Normal vector: {n}"
+            )
         self.c = float(c)  # Ensure float for division
         norm = np.linalg.norm(self.n)
         if not np.isclose(norm, 1):
@@ -101,7 +105,11 @@ class Line:
 
 class Segment(Line):
     def __init__(self, p1, p2): # [x,y] in Line([a,b],c) <=> xa + yb == c
-        assert((p1 != p2).any())
+        if not (p1 != p2).any():
+            raise ValueError(
+                f"Cannot create segment from identical points. "
+                f"Both points at: ({p1[0]:.4f}, {p1[1]:.4f})"
+            )
         normal_vec = vector_perp_rot(p1-p2)
         c = np.dot(p1, normal_vec)
         Line.__init__(self, normal_vec, c)
@@ -242,7 +250,11 @@ class Polygon:
 
 class Circle:
     def __init__(self, center, r):
-        assert(r > 0)
+        if not r > 0:
+            raise ValueError(
+                f"Cannot create circle with non-positive radius. "
+                f"Radius: {r:.4f}"
+            )
         self.c = np.array(center)
         self.r = r
         self.r_squared = self.r**2

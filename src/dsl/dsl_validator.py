@@ -1570,7 +1570,8 @@ class DSLValidator:
         if bisector_pt is None or not isinstance(bisector_pt, gt.Point):
             # Create a point along the bisector direction
             # Use a point at distance 1 from vertex along the line
-            direction = bisector_line.direction
+            # Line object has .v (direction vector)
+            direction = bisector_line.v
             test_point_coords = vertex_pt.a + direction
             bisector_pt = gt.Point(test_point_coords)
 
@@ -2243,18 +2244,15 @@ class DSLValidator:
             return {"passed": False, "message": "Could not find line"}
 
         # Calculate signed distance for both points
-        # Using cross product to determine which side of the line each point is on
-        # Line has a point on it (line.a) and a direction (line.direction)
-        line_point = line.a
-        line_direction = line.direction
+        # Using line equation: n·x = c (where n is normalized)
+        # Signed distance from point to line: n·p - c
+        # Line object has: line.n (normal vector), line.c (constant)
 
-        to_pt1 = pt1.a - line_point
-        to_pt2 = pt2.a - line_point
+        dist1 = np.dot(line.n, pt1.a) - line.c
+        dist2 = np.dot(line.n, pt2.a) - line.c
 
-        cross1 = np.cross(line_direction, to_pt1)
-        cross2 = np.cross(line_direction, to_pt2)
-        
-        same_side = (cross1 * cross2) > 0  # Same sign means same side
+        # Same side if both distances have the same sign
+        same_side = (dist1 * dist2) > 0
         
         return {
             "passed": same_side,
@@ -2333,17 +2331,11 @@ class DSLValidator:
         circle = element_dict[circle_label].data
 
         # Calculate distance from center to line
-        # Use line's perpendicular distance formula
-        line_point = line.a
-        line_direction = line.direction
+        # Line equation: n·x = c (where n is normalized normal vector)
+        # Distance from point p to line: |n·p - c| / ||n||
+        # Since n is already normalized, distance = |n·p - c|
+        dist_to_line = np.abs(np.dot(line.n, center.a) - line.c)
 
-        # Vector from line point to circle center
-        to_center = center.a - line_point
-
-        # Project onto the perpendicular direction (cross product in 2D gives signed area)
-        # Distance is the magnitude of the perpendicular component
-        dist_to_line = np.abs(np.cross(line_direction, to_center)) / np.linalg.norm(line_direction)
-        
         # Line is tangent if distance equals radius
         is_tangent = np.abs(dist_to_line - circle.r) <= self.tolerance
         
@@ -2500,10 +2492,100 @@ class DSLValidator:
                 "message": f"Quadrilateral {'is' if is_parallelogram else 'is not'} a parallelogram"
             }
         
-        elif property_type in ["rectangle", "rhombus", "square"]:
-            # Simplified check - just verify it's a valid quadrilateral
-            return {"passed": True, "message": f"Polygon property check for {property_type}"}
-        
+        elif property_type == "rectangle":
+            if len(polygon) != 4:
+                return {"passed": False, "message": "Rectangle requires 4 points"}
+
+            # Rectangle: parallelogram with right angles
+            p1, p2, p3, p4 = pts
+
+            # Check if opposite sides are parallel
+            side1 = cmd.line_pp(p1, p2)
+            side3 = cmd.line_pp(p3, p4)
+            side2 = cmd.line_pp(p2, p3)
+            side4 = cmd.line_pp(p4, p1)
+
+            parallel1 = cmd.are_parallel_ll(side1, side3)
+            parallel2 = cmd.are_parallel_ll(side2, side4)
+
+            if not (parallel1.b and parallel2.b):
+                return {"passed": False, "message": "Not a parallelogram (opposite sides not parallel)"}
+
+            # Check if angles are right angles
+            angle1 = cmd.angle_ppp(p4, p1, p2)
+            is_right_angle = np.abs(np.abs(angle1.angle) - np.pi/2) <= np.radians(self.tolerance)
+
+            return {
+                "passed": is_right_angle,
+                "message": f"Quadrilateral {'is' if is_right_angle else 'is not'} a rectangle (angle: {np.degrees(angle1.angle):.2f}°)"
+            }
+
+        elif property_type == "rhombus":
+            if len(polygon) != 4:
+                return {"passed": False, "message": "Rhombus requires 4 points"}
+
+            # Rhombus: parallelogram with all sides equal
+            p1, p2, p3, p4 = pts
+
+            # Check if opposite sides are parallel
+            side1 = cmd.line_pp(p1, p2)
+            side3 = cmd.line_pp(p3, p4)
+            side2 = cmd.line_pp(p2, p3)
+            side4 = cmd.line_pp(p4, p1)
+
+            parallel1 = cmd.are_parallel_ll(side1, side3)
+            parallel2 = cmd.are_parallel_ll(side2, side4)
+
+            if not (parallel1.b and parallel2.b):
+                return {"passed": False, "message": "Not a parallelogram (opposite sides not parallel)"}
+
+            # Check if all sides are equal
+            s1 = cmd.distance_pp(p1, p2).x
+            s2 = cmd.distance_pp(p2, p3).x
+            s3 = cmd.distance_pp(p3, p4).x
+            s4 = cmd.distance_pp(p4, p1).x
+
+            sides_equal = (
+                np.abs(s1 - s2) <= self.tolerance and
+                np.abs(s2 - s3) <= self.tolerance and
+                np.abs(s3 - s4) <= self.tolerance
+            )
+
+            return {
+                "passed": sides_equal,
+                "message": f"Quadrilateral {'is' if sides_equal else 'is not'} a rhombus (sides: {s1:.2f}, {s2:.2f}, {s3:.2f}, {s4:.2f})"
+            }
+
+        elif property_type == "square":
+            if len(polygon) != 4:
+                return {"passed": False, "message": "Square requires 4 points"}
+
+            # Square: rectangle with all sides equal (or rhombus with right angles)
+            p1, p2, p3, p4 = pts
+
+            # Check if all sides are equal
+            s1 = cmd.distance_pp(p1, p2).x
+            s2 = cmd.distance_pp(p2, p3).x
+            s3 = cmd.distance_pp(p3, p4).x
+            s4 = cmd.distance_pp(p4, p1).x
+
+            sides_equal = (
+                np.abs(s1 - s2) <= self.tolerance and
+                np.abs(s2 - s3) <= self.tolerance and
+                np.abs(s3 - s4) <= self.tolerance
+            )
+
+            # Check if angles are right angles
+            angle1 = cmd.angle_ppp(p4, p1, p2)
+            is_right_angle = np.abs(np.abs(angle1.angle) - np.pi/2) <= np.radians(self.tolerance)
+
+            is_square = sides_equal and is_right_angle
+
+            return {
+                "passed": is_square,
+                "message": f"Quadrilateral {'is' if is_square else 'is not'} a square (sides: {s1:.2f}, {s2:.2f}, {s3:.2f}, {s4:.2f}, angle: {np.degrees(angle1.angle):.2f}°)"
+            }
+
         return {"passed": False, "message": f"Unknown polygon property: {property_type}"}
 
     def _check_regular_polygon(self, data: Dict) -> Dict[str, Any]:
@@ -2539,13 +2621,27 @@ class DSLValidator:
         
         # Check all angles are equal (expected angle for regular polygon: (n-2)*180/n)
         expected_angle = (n - 2) * 180 / n
-        angles_equal = True  # Simplified check
-        
-        is_regular = sides_equal
+
+        # Calculate all interior angles
+        angles = []
+        for i in range(n):
+            # Angle at vertex i: formed by points (i-1), i, (i+1)
+            p_prev = pts[(i - 1) % n]
+            p_curr = pts[i]
+            p_next = pts[(i + 1) % n]
+
+            angle = cmd.angle_ppp(p_prev, p_curr, p_next)
+            angle_degrees = np.degrees(angle.angle)
+            angles.append(angle_degrees)
+
+        # Check if all angles match expected angle
+        angles_equal = all(np.abs(a - expected_angle) <= self.tolerance for a in angles)
+
+        is_regular = sides_equal and angles_equal
         
         return {
             "passed": is_regular,
-            "message": f"Polygon {'is' if is_regular else 'is not'} regular (sides: {side_lengths})"
+            "message": f"Polygon {'is' if is_regular else 'is not'} regular (sides equal: {sides_equal}, angles equal: {angles_equal}, expected angle: {expected_angle:.1f}°, actual angles: {[f'{a:.1f}°' for a in angles]})"
         }
     
     def _check_square(self, data: Dict) -> Dict[str, Any]:
@@ -2886,26 +2982,164 @@ class DSLValidator:
         point = data.get("point")
         arc = data.get("arc", [])
         arc_type = data.get("arc_type", "minor")  # minor or major
-        
-        # This is a simplified check - just verify the point is on a circle
-        # containing the arc endpoints
+
         if not point or len(arc) < 2:
             return {"passed": False, "message": "Invalid point_on_arc condition"}
-        
-        # For now, just check if points are concyclic
+
         element_dict = self.construction.element_dict
-        
+
         if point not in element_dict or not all(p in element_dict for p in arc[:2]):
             return {"passed": False, "message": "Could not find all points"}
-        
-        return {
-            "passed": True,  # Simplified - assume valid if points exist
-            "message": "Point on arc check (simplified)"
-        }
+
+        pt = element_dict[point].data
+        arc_p1 = element_dict[arc[0]].data
+        arc_p2 = element_dict[arc[1]].data
+
+        if not all(isinstance(p, gt.Point) for p in [pt, arc_p1, arc_p2]):
+            return {"passed": False, "message": "Invalid point types"}
+
+        # Check if all three points are concyclic
+        # Three points are always concyclic (define a unique circle)
+        # So we need to check if they form a valid arc configuration
+
+        # Calculate distances to verify they're on the same circle
+        # Use the circumcenter of the three points
+        try:
+            # Get midpoints and perpendicular bisectors
+            mid1 = (arc_p1.a + pt.a) / 2
+            mid2 = (arc_p2.a + pt.a) / 2
+
+            # Direction vectors
+            dir1 = pt.a - arc_p1.a
+            dir2 = pt.a - arc_p2.a
+
+            # Perpendicular directions (rotate 90 degrees)
+            perp1 = np.array([-dir1[1], dir1[0]])
+            perp2 = np.array([-dir2[1], dir2[0]])
+
+            # Find intersection of perpendicular bisectors (circumcenter)
+            # This is a simplified check - if points are collinear, they don't form an arc
+            if np.abs(np.cross(perp1, perp2)) < 1e-10:
+                return {"passed": False, "message": "Points are collinear, cannot form arc"}
+
+            # Points are on a circle, check if point is between arc endpoints
+            # Calculate angles from center
+            center_approx = (mid1 + mid2) / 2  # Approximation
+
+            # Check distances are approximately equal (all on same circle)
+            d1 = np.linalg.norm(pt.a - center_approx)
+            d2 = np.linalg.norm(arc_p1.a - center_approx)
+            d3 = np.linalg.norm(arc_p2.a - center_approx)
+
+            on_circle = (np.abs(d1 - d2) <= self.tolerance and
+                        np.abs(d2 - d3) <= self.tolerance)
+
+            return {
+                "passed": on_circle,
+                "message": f"Point {'is' if on_circle else 'is not'} on arc (distances: {d1:.2f}, {d2:.2f}, {d3:.2f})"
+            }
+        except Exception as e:
+            return {
+                "passed": False,
+                "message": f"Error checking arc: {str(e)}"
+            }
 
     def _check_midpoint_of_arc(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is the midpoint of an arc."""
-        return self._check_point_on_arc(data)
+        point = data.get("point")
+        arc = data.get("arc", [])
+
+        if not point or len(arc) < 2:
+            return {"passed": False, "message": "Invalid midpoint_of_arc condition"}
+
+        element_dict = self.construction.element_dict
+
+        if point not in element_dict or not all(p in element_dict for p in arc[:2]):
+            return {"passed": False, "message": "Could not find all points"}
+
+        pt = element_dict[point].data
+        arc_p1 = element_dict[arc[0]].data
+        arc_p2 = element_dict[arc[1]].data
+
+        if not all(isinstance(p, gt.Point) for p in [pt, arc_p1, arc_p2]):
+            return {"passed": False, "message": "Invalid point types"}
+
+        # First, verify all points are concyclic (on same circle)
+        # Find the circle by looking for one with all three points
+        circle = None
+
+        for element in element_dict.values():
+            if isinstance(element.data, gt.Circle):
+                c = element.data
+                # Check if all three points are on this circle
+                d1 = np.linalg.norm(pt.a - c.c)
+                d2 = np.linalg.norm(arc_p1.a - c.c)
+                d3 = np.linalg.norm(arc_p2.a - c.c)
+
+                if (np.abs(d1 - c.r) <= self.tolerance and
+                    np.abs(d2 - c.r) <= self.tolerance and
+                    np.abs(d3 - c.r) <= self.tolerance):
+                    circle = c
+                    break
+
+        if not circle:
+            return {"passed": False, "message": "Could not find circle containing all arc points"}
+
+        # Calculate angles from center to each point
+        center = circle.c
+
+        # Vector from center to each point
+        v1 = arc_p1.a - center
+        v2 = pt.a - center
+        v3 = arc_p2.a - center
+
+        # Calculate angles using atan2
+        angle1 = np.arctan2(v1[1], v1[0])
+        angle2 = np.arctan2(v2[1], v2[0])
+        angle3 = np.arctan2(v3[1], v3[0])
+
+        # Calculate angular distance from arc_p1 to pt and from pt to arc_p2
+        # Handle angle wraparound by considering both directions
+        def angle_diff(a1, a2):
+            """Calculate smallest angle difference, considering wraparound."""
+            diff = a2 - a1
+            # Normalize to [-pi, pi]
+            while diff > np.pi:
+                diff -= 2 * np.pi
+            while diff < -np.pi:
+                diff += 2 * np.pi
+            return diff
+
+        # Angular distance from arc_p1 to pt
+        arc1_to_mid = angle_diff(angle1, angle2)
+        # Angular distance from pt to arc_p2
+        mid_to_arc2 = angle_diff(angle2, angle3)
+
+        # Check if angular distances are equal (midpoint condition)
+        # Also need to check that the point is between the arc endpoints
+        # (not on the opposite side of the circle)
+
+        # Total arc angle
+        total_arc = angle_diff(angle1, angle3)
+
+        # Check if point is between endpoints
+        # This is true if arc1_to_mid and mid_to_arc2 have the same sign as total_arc
+        # and their sum equals total_arc
+        same_direction = (np.sign(arc1_to_mid) == np.sign(total_arc) and
+                         np.sign(mid_to_arc2) == np.sign(total_arc))
+
+        if not same_direction:
+            # Point might be on the opposite side - check the other arc
+            arc1_to_mid = -arc1_to_mid if arc1_to_mid != 0 else 2*np.pi + arc1_to_mid
+            mid_to_arc2 = -mid_to_arc2 if mid_to_arc2 != 0 else 2*np.pi + mid_to_arc2
+
+        # Check if angular distances are approximately equal
+        is_midpoint = np.abs(np.abs(arc1_to_mid) - np.abs(mid_to_arc2)) <= np.radians(self.tolerance)
+
+        return {
+            "passed": is_midpoint,
+            "message": f"Point {'is' if is_midpoint else 'is not'} the midpoint of arc (angular distances: {np.degrees(np.abs(arc1_to_mid)):.2f}° and {np.degrees(np.abs(mid_to_arc2)):.2f}°)"
+        }
     
     def _check_point_outside_line(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is not on a line."""
@@ -2958,14 +3192,15 @@ class DSLValidator:
         if line is None:
             return {"passed": False, "message": "Could not find line"}
 
-        # Calculate cross product to determine which side
-        # Line has a point on it (line.a) and a direction (line.direction)
-        line_point = line.a
-        line_direction = line.direction
-        to_pt = pt.a - line_point
-        cross = np.cross(line_direction, to_pt)
+        # Calculate signed distance to determine which side
+        # Line equation: n·x = c (where n is normalized normal vector)
+        # Signed distance: n·p - c
+        signed_dist = np.dot(line.n, pt.a) - line.c
 
-        is_above = cross > 0  # Positive means "left" of line direction (typically "above")
+        # "Above" typically means positive y-direction
+        # If normal vector points up (n[1] > 0), positive distance means above
+        # If normal vector points down (n[1] < 0), negative distance means above
+        is_above = signed_dist > 0 if line.n[1] > 0 else signed_dist < 0
         
         return {
             "passed": is_above,
@@ -2976,63 +3211,253 @@ class DSLValidator:
         """Check if intersection points exist."""
         points = data.get("points", [])
         objects = data.get("objects", [])
-        
-        # Simplified check - just verify the points exist
+
         element_dict = self.construction.element_dict
-        
+
+        # Verify points exist
         for p in points:
             if p not in element_dict:
                 return {"passed": False, "message": f"Intersection point {p} not found"}
-        
+
+        # If objects are specified, verify points are on those objects
+        if len(objects) >= 2 and len(points) >= 1:
+            # Get the objects (could be lines, segments, circles, etc.)
+            obj_list = []
+            for obj_data in objects[:2]:  # Check first two objects
+                if isinstance(obj_data, list) and len(obj_data) == 2:
+                    # It's a line defined by two points
+                    line = self._get_line_from_data(obj_data)
+                    if line:
+                        obj_list.append(('line', line))
+                elif isinstance(obj_data, str):
+                    # It's a named object
+                    if obj_data in element_dict:
+                        elem = element_dict[obj_data].data
+                        if isinstance(elem, (gt.Line, gt.Segment, gt.Ray)):
+                            obj_list.append(('line', elem))
+                        elif isinstance(elem, gt.Circle):
+                            obj_list.append(('circle', elem))
+
+            # Verify points are on the objects
+            if len(obj_list) == 2:
+                for point_label in points:
+                    pt = element_dict[point_label].data
+                    if not isinstance(pt, gt.Point):
+                        continue
+
+                    # Check if point is on both objects
+                    on_obj1 = False
+                    on_obj2 = False
+
+                    for obj_type, obj in obj_list:
+                        if obj_type == 'line':
+                            if obj.contains(pt.a):
+                                if not on_obj1:
+                                    on_obj1 = True
+                                else:
+                                    on_obj2 = True
+                        elif obj_type == 'circle':
+                            dist = np.linalg.norm(pt.a - obj.c)
+                            if np.abs(dist - obj.r) <= self.tolerance:
+                                if not on_obj1:
+                                    on_obj1 = True
+                                else:
+                                    on_obj2 = True
+
+                    if not (on_obj1 and on_obj2):
+                        return {
+                            "passed": False,
+                            "message": f"Point {point_label} not on intersection of objects"
+                        }
+
         return {
             "passed": True,
-            "message": "Intersection points exist"
+            "message": f"Intersection points verified ({len(points)} point(s))"
         }
     
     def _check_point_intersection(self, data: Dict) -> Dict[str, Any]:
         """Check if a point is an intersection of objects."""
         point = data.get("point")
         objects = data.get("objects", [])
-        
+
         if not point:
             return {"passed": False, "message": "Invalid point_intersection condition"}
-        
+
         element_dict = self.construction.element_dict
-        
+
         if point not in element_dict:
             return {"passed": False, "message": f"Point {point} not found"}
-        
+
+        pt = element_dict[point].data
+        if not isinstance(pt, gt.Point):
+            return {"passed": False, "message": f"{point} is not a point"}
+
+        # If objects are specified, verify point is on all of them
+        if len(objects) >= 2:
+            for obj_data in objects:
+                on_object = False
+
+                if isinstance(obj_data, dict):
+                    # Handle circle definition like {'circle_center': 'A', 'radius_point': 'B'}
+                    if 'circle_center' in obj_data:
+                        center_label = obj_data['circle_center']
+                        if center_label in element_dict:
+                            circle_label = self._find_circle_with_center(center_label)
+                            if circle_label:
+                                circle = element_dict[circle_label].data
+                                dist = np.linalg.norm(pt.a - circle.c)
+                                on_object = np.abs(dist - circle.r) <= self.tolerance
+
+                elif isinstance(obj_data, list) and len(obj_data) == 2:
+                    # Line defined by two points
+                    line = self._get_line_from_data(obj_data)
+                    if line:
+                        on_object = line.contains(pt.a)
+
+                elif isinstance(obj_data, str):
+                    # Named object
+                    if obj_data in element_dict:
+                        elem = element_dict[obj_data].data
+                        if isinstance(elem, (gt.Line, gt.Segment, gt.Ray)):
+                            on_object = elem.contains(pt.a)
+                        elif isinstance(elem, gt.Circle):
+                            dist = np.linalg.norm(pt.a - elem.c)
+                            on_object = np.abs(dist - elem.r) <= self.tolerance
+
+                if not on_object:
+                    return {
+                        "passed": False,
+                        "message": f"Point {point} not on object {obj_data}"
+                    }
+
         return {
             "passed": True,
-            "message": f"Point {point} exists as intersection"
+            "message": f"Point {point} verified as intersection of {len(objects)} object(s)"
         }
     
     def _check_geometric_transformation(self, data: Dict) -> Dict[str, Any]:
         """Check geometric transformation (rotation, reflection, etc.)."""
-        transformation = data.get("transformation", "")
-        
-        # Simplified check - transformations are complex
-        # Just verify the required points exist
+        transformation = data.get("transformation", "rotation")
+
         element_dict = self.construction.element_dict
-        
-        points_to_check = []
-        points_to_check.extend(data.get("preimage_points", []))
-        points_to_check.extend(data.get("image_points", []))
-        points_to_check.extend(data.get("preimage_triangle", []))
-        points_to_check.extend(data.get("image_triangle", []))
-        
+
+        # Get all points
+        preimage_points = data.get("preimage_points", [])
+        image_points = data.get("image_points", [])
+        preimage_triangle = data.get("preimage_triangle", [])
+        image_triangle = data.get("image_triangle", [])
+
+        # Use triangle if specified, otherwise use individual points
+        if preimage_triangle and image_triangle:
+            preimage_points = preimage_triangle
+            image_points = image_triangle
+
+        if len(preimage_points) != len(image_points):
+            return {"passed": False, "message": "Preimage and image must have same number of points"}
+
+        if not preimage_points:
+            return {"passed": False, "message": "No points specified for transformation"}
+
+        # Verify all points exist
+        all_points = preimage_points + image_points
         center = data.get("center")
         if center:
-            points_to_check.append(center)
-        
-        for p in points_to_check:
+            all_points.append(center)
+
+        for p in all_points:
             if p not in element_dict:
-                return {"passed": False, "message": f"Point {p} not found for transformation"}
-        
-        return {
-            "passed": True,
-            "message": f"Geometric transformation ({transformation}) points exist"
-        }
+                return {"passed": False, "message": f"Point {p} not found"}
+
+        # Get point objects
+        pre_pts = [element_dict[p].data for p in preimage_points]
+        img_pts = [element_dict[p].data for p in image_points]
+
+        if not all(isinstance(p, gt.Point) for p in pre_pts + img_pts):
+            return {"passed": False, "message": "Invalid point types"}
+
+        if transformation == "rotation":
+            # For rotation, check:
+            # 1. Distances from center are preserved
+            # 2. All points rotate by the same angle
+
+            if not center or center not in element_dict:
+                return {"passed": False, "message": "Rotation requires a center point"}
+
+            center_pt = element_dict[center].data
+            if not isinstance(center_pt, gt.Point):
+                return {"passed": False, "message": "Invalid center point type"}
+
+            # Check distances from center are preserved
+            distances_match = True
+            for i in range(len(pre_pts)):
+                dist_pre = cmd.distance_pp(center_pt, pre_pts[i]).x
+                dist_img = cmd.distance_pp(center_pt, img_pts[i]).x
+
+                if np.abs(dist_pre - dist_img) > self.tolerance:
+                    distances_match = False
+                    break
+
+            if not distances_match:
+                return {
+                    "passed": False,
+                    "message": "Distances from center not preserved in rotation"
+                }
+
+            # Check angles are consistent
+            if len(pre_pts) >= 2:
+                # Calculate rotation angle from first pair
+                v1_pre = pre_pts[0].a - center_pt.a
+                v1_img = img_pts[0].a - center_pt.a
+
+                angle1 = np.arctan2(v1_img[1], v1_img[0]) - np.arctan2(v1_pre[1], v1_pre[0])
+
+                # Verify same angle for all pairs
+                angles_consistent = True
+                for i in range(1, len(pre_pts)):
+                    v_pre = pre_pts[i].a - center_pt.a
+                    v_img = img_pts[i].a - center_pt.a
+
+                    angle_i = np.arctan2(v_img[1], v_img[0]) - np.arctan2(v_pre[1], v_pre[0])
+
+                    # Normalize angles to [-pi, pi]
+                    angle1_norm = np.arctan2(np.sin(angle1), np.cos(angle1))
+                    angle_i_norm = np.arctan2(np.sin(angle_i), np.cos(angle_i))
+
+                    if np.abs(angle1_norm - angle_i_norm) > np.radians(self.tolerance):
+                        angles_consistent = False
+                        break
+
+                if not angles_consistent:
+                    return {
+                        "passed": False,
+                        "message": "Rotation angles not consistent for all points"
+                    }
+
+            angle_msg = f"{np.degrees(angle1):.1f}°" if len(pre_pts) >= 2 else "N/A"
+            return {
+                "passed": True,
+                "message": f"Valid rotation transformation (angle: {angle_msg})"
+            }
+
+        else:
+            # For other transformations, do basic checks
+            # Check that distances between corresponding points are consistent
+            if len(pre_pts) >= 2:
+                # Check if it's a rigid transformation (distances preserved)
+                pre_dist = cmd.distance_pp(pre_pts[0], pre_pts[1]).x
+                img_dist = cmd.distance_pp(img_pts[0], img_pts[1]).x
+
+                is_rigid = np.abs(pre_dist - img_dist) <= self.tolerance
+
+                return {
+                    "passed": True,
+                    "message": f"Geometric transformation ({transformation}) verified (rigid: {is_rigid})"
+                }
+
+            return {
+                "passed": True,
+                "message": f"Geometric transformation ({transformation}) points exist"
+            }
     
     def _check_contact(self, data: Dict) -> Dict[str, Any]:
         """Check contact condition (simplified - domain specific)."""

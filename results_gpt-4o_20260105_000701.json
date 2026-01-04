@@ -1,0 +1,1148 @@
+{
+  "metadata": {
+    "timestamp": "2026-01-05T00:09:50.538815",
+    "model": "gpt-4o",
+    "dataset": "/Users/ooongs/Github/pyggb/data/geoqa3_dataset.json",
+    "max_iterations": 5,
+    "start_idx": 0,
+    "problems_count": 5,
+    "use_vision": true,
+    "vision_mode": "with_vision",
+    "run_id": "gpt-4o_vision_20260105_000701",
+    "run_dir": "agent_logs/gpt-4o_vision_20260105_000701"
+  },
+  "metrics": {
+    "total_problems": 5,
+    "successful_problems": 1,
+    "failed_problems": 4,
+    "skipped_problems": 0,
+    "success_rate": 0.2,
+    "skipped_problem_ids": [],
+    "skipped_reasons": {},
+    "average_steps": 4.2,
+    "average_success_steps": 1.0,
+    "min_success_steps": 1,
+    "max_success_steps": 1,
+    "success_step_distribution": {
+      "1": 1
+    },
+    "total_hallucinations": 11,
+    "average_hallucinations_per_problem": 2.2,
+    "hallucination_error_types": {
+      "undefined_reference": 6,
+      "other_error": 2,
+      "syntax_error": 3
+    },
+    "average_hallucination_recovery_steps": 1.3333333333333333,
+    "missing_objects_by_type": {
+      "points": 1,
+      "segments": 1,
+      "lines": 1,
+      "circles": 0,
+      "polygons": 0
+    },
+    "total_missing_objects": 3,
+    "failed_conditions_by_type": {
+      "angle_value": 9,
+      "parallel": 1,
+      "point_on_segment": 9,
+      "segment_equality": 1,
+      "perpendicular": 4
+    },
+    "total_failed_conditions": 24,
+    "validation_errors_count": 0,
+    "validation_errors_by_type": {},
+    "unknown_condition_types": []
+  },
+  "detailed_analysis": {
+    "success_rate": {
+      "value": 0.2,
+      "successful": 1,
+      "failed": 4,
+      "skipped": 0,
+      "total": 5,
+      "note": "Success rate is calculated excluding skipped problems"
+    },
+    "step_analysis": {
+      "average_steps_to_success": 1.0,
+      "min_steps_to_success": 1,
+      "max_steps_to_success": 1,
+      "step_distribution": {
+        "1": 1
+      }
+    },
+    "hallucination_analysis": {
+      "total_hallucinations": 11,
+      "average_per_problem": 2.2,
+      "average_recovery_steps": 1.3333333333333333,
+      "error_type_distribution": {
+        "undefined_reference": 6,
+        "other_error": 2,
+        "syntax_error": 3
+      }
+    },
+    "object_analysis": {
+      "total_missing_objects": 3,
+      "missing_by_type": {
+        "points": 1,
+        "segments": 1,
+        "lines": 1,
+        "circles": 0,
+        "polygons": 0
+      }
+    },
+    "condition_analysis": {
+      "total_failed_conditions": 24,
+      "failed_by_type": {
+        "angle_value": 9,
+        "parallel": 1,
+        "point_on_segment": 9,
+        "segment_equality": 1,
+        "perpendicular": 4
+      }
+    },
+    "validation_error_analysis": {
+      "total_errors": 0,
+      "errors_by_type": {},
+      "unknown_condition_types": []
+    }
+  },
+  "results": [
+    {
+      "problem_id": "367",
+      "success": true,
+      "iterations": 1,
+      "final_dsl": "# Define the center of the circle\npoint : 0 0 -> O\n\n# Define point A on the circle\npoint : 100 0 -> A\n\n# Define point C such that ∠AOC = 100°\npoint : 100*cos(100°) 100*sin(100°) -> C\n\n# Define the circle with center O and radius OA\ncircle : O A -> circle_O\n\n# Define points B and D on the circle to complete the quadrilateral\n# For simplicity, place B and D at 90° and 270° from A\npoint : 100*cos(90°) 100*sin(90°) -> B\npoint : 100*cos(270°) 100*sin(270°) -> D\n\n# Create segments to form the quadrilateral\nsegment : A B -> AB\nsegment : B C -> BC\nsegment : C D -> CD\nsegment : D A -> DA",
+      "summary": {
+        "problem_id": "367",
+        "problem_text": "四边形ABCD内接于⊙O, ∠AOC=100°",
+        "total_steps": 1,
+        "successful_executions": 1,
+        "duration_seconds": 4.866252,
+        "final_success": true,
+        "has_final_dsl": true
+      },
+      "session_id": "367_gpt-4o_vision_20260105_000701",
+      "log_file": "agent_logs/gpt-4o_vision_20260105_000701/sessions/367_gpt-4o_vision.log",
+      "images": [
+        "agent_logs/gpt-4o_vision_20260105_000701/images/367_gpt-4o_vision_iter1.png"
+      ],
+      "validation_result": {
+        "success": true,
+        "total_score": 1.0,
+        "object_score": 1.0,
+        "condition_score": 1.0,
+        "missing_objects": {
+          "points": [],
+          "segments": [],
+          "lines": [],
+          "circles": [],
+          "polygons": []
+        },
+        "failed_conditions": [],
+        "has_dataset_error": false,
+        "dataset_error_types": [],
+        "details": {
+          "object_details": {
+            "total_required": 11,
+            "total_found": 11,
+            "validation_mode": "hybrid"
+          },
+          "found_objects": {
+            "points": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "O"
+            ],
+            "segments": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "D",
+                "A"
+              ]
+            ],
+            "lines": [],
+            "circles": [
+              {
+                "center": "O",
+                "radius_point": "A"
+              }
+            ],
+            "polygons": [
+              [
+                "A",
+                "B",
+                "C",
+                "D"
+              ]
+            ]
+          },
+          "condition_details": [
+            {
+              "condition": {
+                "type": "point_on_circle",
+                "point": "A",
+                "circle": {
+                  "center": "O",
+                  "radius_point": "A"
+                }
+              },
+              "passed": true,
+              "message": "Point 'A' is on circle 'circle_O' (center='O')"
+            },
+            {
+              "condition": {
+                "type": "point_on_circle",
+                "point": "B",
+                "circle_center": "O"
+              },
+              "passed": true,
+              "message": "Point 'B' is on circle 'circle_O' (center='O')"
+            },
+            {
+              "condition": {
+                "type": "point_on_circle",
+                "point": "C",
+                "circle": {
+                  "center": "O",
+                  "radius_point": "C"
+                }
+              },
+              "passed": true,
+              "message": "Point 'C' is on circle 'circle_O' (center='O')"
+            },
+            {
+              "condition": {
+                "type": "point_on_circle",
+                "point": "D",
+                "circle": {
+                  "center": "O",
+                  "radius_point": "D"
+                }
+              },
+              "passed": true,
+              "message": "Point 'D' is on circle 'circle_O' (center='O')"
+            },
+            {
+              "condition": {
+                "type": "angle_value",
+                "points": [
+                  [
+                    "A",
+                    "O",
+                    "C"
+                  ]
+                ],
+                "value": 100
+              },
+              "passed": true,
+              "message": "Angle is 100.00° (reflex 260.00°), expected 100° (tolerance 1.0°); closest match: 100.00°"
+            }
+          ],
+          "passed_conditions": [
+            {
+              "type": "point_on_circle",
+              "point": "A",
+              "circle": {
+                "center": "O",
+                "radius_point": "A"
+              }
+            },
+            {
+              "type": "point_on_circle",
+              "point": "B",
+              "circle_center": "O"
+            },
+            {
+              "type": "point_on_circle",
+              "point": "C",
+              "circle": {
+                "center": "O",
+                "radius_point": "C"
+              }
+            },
+            {
+              "type": "point_on_circle",
+              "point": "D",
+              "circle": {
+                "center": "O",
+                "radius_point": "D"
+              }
+            },
+            {
+              "type": "angle_value",
+              "points": [
+                [
+                  "A",
+                  "O",
+                  "C"
+                ]
+              ],
+              "value": 100
+            }
+          ]
+        }
+      },
+      "memory_path": "/Users/ooongs/Github/pyggb/agent_images/367_memory.json"
+    },
+    {
+      "problem_id": "368",
+      "success": false,
+      "iterations": 5,
+      "final_dsl": null,
+      "summary": {
+        "problem_id": "368",
+        "problem_text": "⊙O是△ABC的外接圆, 连结OA、OB, 且点C、O在弦AB的同侧, ∠ABO=50°",
+        "total_steps": 5,
+        "successful_executions": 0,
+        "duration_seconds": 62.511499,
+        "final_success": false,
+        "has_final_dsl": false
+      },
+      "session_id": "368_gpt-4o_vision_20260105_000701",
+      "log_file": "agent_logs/gpt-4o_vision_20260105_000701/sessions/368_gpt-4o_vision.log",
+      "images": [],
+      "validation_result": null,
+      "memory_path": "/Users/ooongs/Github/pyggb/agent_images/368_memory.json"
+    },
+    {
+      "problem_id": "370",
+      "success": false,
+      "iterations": 5,
+      "final_dsl": "# Define the initial points of the triangle\npoint : 0 0 -> A\npoint : 100 0 -> B\nrotate : B 45° A -> C  # Create angle ∠B = 45°\n\n# Create segments of the triangle\nsegment : A B -> AB\nsegment : B C -> BC\nsegment : C A -> CA\n\n# Define line AC and line AB for parallel construction\nline : A C -> line_AC\nline : A B -> line_AB\n\n# Define point D on AC\nmidpoint : A C -> D\n\n# Create parallel line DF to AB through D\nparallel_line : D line_AB -> line_DF\n\n# Define point F on BC\nmidpoint : B C -> F\n\n# Create parallel line EF to AC through F\nparallel_line : F line_AC -> line_EF\n\n# Intersect line_EF with AB to find E\nintersect : line_EF AB -> E\n\n# Create segments for EF and DF\nsegment : E F -> EF\nsegment : D F -> DF",
+      "summary": {
+        "problem_id": "370",
+        "problem_text": "在△ABC中,点D、E、F分别在边AC、AB、BC上,EF∥AC,DF∥AB,∠B=45°,∠C=65°",
+        "total_steps": 5,
+        "successful_executions": 4,
+        "duration_seconds": 50.388605,
+        "final_success": false,
+        "has_final_dsl": true
+      },
+      "session_id": "370_gpt-4o_vision_20260105_000701",
+      "log_file": "agent_logs/gpt-4o_vision_20260105_000701/sessions/370_gpt-4o_vision.log",
+      "images": [
+        "agent_logs/gpt-4o_vision_20260105_000701/images/370_gpt-4o_vision_iter2.png",
+        "agent_logs/gpt-4o_vision_20260105_000701/images/370_gpt-4o_vision_iter3.png",
+        "agent_logs/gpt-4o_vision_20260105_000701/images/370_gpt-4o_vision_iter4.png",
+        "agent_logs/gpt-4o_vision_20260105_000701/images/370_gpt-4o_vision_iter5.png"
+      ],
+      "validation_result": {
+        "success": false,
+        "total_score": 0.8,
+        "object_score": 1.0,
+        "condition_score": 0.7142857142857143,
+        "missing_objects": {
+          "points": [],
+          "segments": [],
+          "lines": [],
+          "circles": [],
+          "polygons": []
+        },
+        "failed_conditions": [
+          {
+            "type": "angle_value",
+            "points": [
+              [
+                "A",
+                "B",
+                "C"
+              ]
+            ],
+            "value": 45,
+            "validation_message": "Angle is 292.50° (reflex 67.50°), expected 45° (tolerance 1.0°); closest match: 67.50°"
+          },
+          {
+            "type": "angle_value",
+            "points": [
+              [
+                "A",
+                "C",
+                "B"
+              ]
+            ],
+            "value": 65,
+            "validation_message": "Angle is 67.50° (reflex 292.50°), expected 65° (tolerance 1.0°); closest match: 67.50°"
+          }
+        ],
+        "has_dataset_error": false,
+        "dataset_error_types": [],
+        "details": {
+          "object_details": {
+            "total_required": 10,
+            "total_found": 10,
+            "validation_mode": "hybrid"
+          },
+          "found_objects": {
+            "points": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "F"
+            ],
+            "segments": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ],
+              [
+                "A",
+                "C"
+              ]
+            ],
+            "lines": [],
+            "circles": [],
+            "polygons": [
+              [
+                "A",
+                "B",
+                "C"
+              ]
+            ]
+          },
+          "condition_details": [
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "D",
+                "segment": [
+                  "A",
+                  "C"
+                ]
+              },
+              "passed": true,
+              "message": "Point is on segment (distances: 31.94 + 31.94 = 63.89, segment: 63.89)"
+            },
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "E",
+                "segment": [
+                  "A",
+                  "B"
+                ]
+              },
+              "passed": true,
+              "message": "Point is on segment (distances: 31.94 + 31.94 = 63.89, segment: 63.89)"
+            },
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "F",
+                "segment": [
+                  "B",
+                  "C"
+                ]
+              },
+              "passed": true,
+              "message": "Point is on segment (distances: 24.45 + 24.45 = 48.90, segment: 48.90)"
+            },
+            {
+              "condition": {
+                "type": "parallel",
+                "objects": [
+                  [
+                    "E",
+                    "F"
+                  ],
+                  [
+                    "A",
+                    "C"
+                  ]
+                ]
+              },
+              "passed": true,
+              "message": "Lines are parallel"
+            },
+            {
+              "condition": {
+                "type": "parallel",
+                "objects": [
+                  [
+                    "D",
+                    "F"
+                  ],
+                  [
+                    "A",
+                    "B"
+                  ]
+                ]
+              },
+              "passed": true,
+              "message": "Lines are parallel"
+            },
+            {
+              "condition": {
+                "type": "angle_value",
+                "points": [
+                  [
+                    "A",
+                    "B",
+                    "C"
+                  ]
+                ],
+                "value": 45
+              },
+              "passed": false,
+              "message": "Angle is 292.50° (reflex 67.50°), expected 45° (tolerance 1.0°); closest match: 67.50°"
+            },
+            {
+              "condition": {
+                "type": "angle_value",
+                "points": [
+                  [
+                    "A",
+                    "C",
+                    "B"
+                  ]
+                ],
+                "value": 65
+              },
+              "passed": false,
+              "message": "Angle is 67.50° (reflex 292.50°), expected 65° (tolerance 1.0°); closest match: 67.50°"
+            }
+          ],
+          "passed_conditions": [
+            {
+              "type": "point_on_segment",
+              "point": "D",
+              "segment": [
+                "A",
+                "C"
+              ]
+            },
+            {
+              "type": "point_on_segment",
+              "point": "E",
+              "segment": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "type": "point_on_segment",
+              "point": "F",
+              "segment": [
+                "B",
+                "C"
+              ]
+            },
+            {
+              "type": "parallel",
+              "objects": [
+                [
+                  "E",
+                  "F"
+                ],
+                [
+                  "A",
+                  "C"
+                ]
+              ]
+            },
+            {
+              "type": "parallel",
+              "objects": [
+                [
+                  "D",
+                  "F"
+                ],
+                [
+                  "A",
+                  "B"
+                ]
+              ]
+            }
+          ]
+        }
+      },
+      "memory_path": "/Users/ooongs/Github/pyggb/agent_images/370_memory.json"
+    },
+    {
+      "problem_id": "377",
+      "success": false,
+      "iterations": 5,
+      "final_dsl": "# Define points A and B on line AB\npoint : 0 0 -> A\npoint : 100 0 -> B\n\n# Create line AB\nline : A B -> line_AB\n\n# Define point C\npoint : 50 50 -> C\n\n# Create line CD parallel to AB through C\nparallel_line : C line_AB -> line_CD\n\n# Define point P on line CD\npoint : 70 70 -> P\n\n# Create line CP\nline : C P -> line_CP\n\n# Find intersection O of line CP with line AB\nintersect : line_CP line_AB -> O\n\n# Ensure AO = PO by constructing midpoint M of AP and setting O at M\nmidpoint : A P -> M\n\n# Define angle C as 50° by rotating point P around C\nrotate : P 50° C -> P_rot",
+      "summary": {
+        "problem_id": "377",
+        "problem_text": "AB∥CD, CP交AB于O, AO=PO, ∠C=50°",
+        "total_steps": 5,
+        "successful_executions": 1,
+        "duration_seconds": 23.126226,
+        "final_success": false,
+        "has_final_dsl": true
+      },
+      "session_id": "377_gpt-4o_vision_20260105_000701",
+      "log_file": "agent_logs/gpt-4o_vision_20260105_000701/sessions/377_gpt-4o_vision.log",
+      "images": [
+        "agent_logs/gpt-4o_vision_20260105_000701/images/377_gpt-4o_vision_iter3.png"
+      ],
+      "validation_result": {
+        "success": false,
+        "total_score": 0.37571428571428567,
+        "object_score": 0.7857142857142857,
+        "condition_score": 0.2,
+        "missing_objects": {
+          "points": [
+            "D"
+          ],
+          "segments": [
+            [
+              "C",
+              "D"
+            ]
+          ],
+          "lines": [
+            [
+              "C",
+              "D"
+            ]
+          ],
+          "circles": [],
+          "polygons": []
+        },
+        "failed_conditions": [
+          {
+            "type": "parallel",
+            "objects": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "D"
+              ]
+            ],
+            "validation_message": "Could not find lines"
+          },
+          {
+            "type": "point_on_segment",
+            "point": "O",
+            "segment": [
+              "C",
+              "P"
+            ],
+            "validation_message": "Point is not on segment (distances: 41.79 + 58.50 = 100.29, segment: 16.71)"
+          },
+          {
+            "type": "segment_equality",
+            "segments": [
+              [
+                "A",
+                "O"
+              ],
+              [
+                "P",
+                "O"
+              ]
+            ],
+            "validation_message": "Segments have lengths 0.00 and 98.99"
+          },
+          {
+            "type": "angle_value",
+            "points": [
+              [
+                "B",
+                "C",
+                "D"
+              ]
+            ],
+            "value": 50,
+            "validation_message": "Could not find all points"
+          }
+        ],
+        "has_dataset_error": false,
+        "dataset_error_types": [],
+        "details": {
+          "object_details": {
+            "total_required": 14,
+            "total_found": 11,
+            "validation_mode": "hybrid"
+          },
+          "found_objects": {
+            "points": [
+              "A",
+              "B",
+              "C",
+              "O",
+              "P"
+            ],
+            "segments": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "P"
+              ],
+              [
+                "A",
+                "O"
+              ],
+              [
+                "P",
+                "O"
+              ]
+            ],
+            "lines": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "P"
+              ]
+            ],
+            "circles": [],
+            "polygons": []
+          },
+          "condition_details": [
+            {
+              "condition": {
+                "type": "parallel",
+                "objects": [
+                  [
+                    "A",
+                    "B"
+                  ],
+                  [
+                    "C",
+                    "D"
+                  ]
+                ]
+              },
+              "passed": false,
+              "message": "Could not find lines"
+            },
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "O",
+                "segment": [
+                  "A",
+                  "B"
+                ]
+              },
+              "passed": true,
+              "message": "Point is on segment (distances: 0.00 + 59.09 = 59.09, segment: 59.09)"
+            },
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "O",
+                "segment": [
+                  "C",
+                  "P"
+                ]
+              },
+              "passed": false,
+              "message": "Point is not on segment (distances: 41.79 + 58.50 = 100.29, segment: 16.71)"
+            },
+            {
+              "condition": {
+                "type": "segment_equality",
+                "segments": [
+                  [
+                    "A",
+                    "O"
+                  ],
+                  [
+                    "P",
+                    "O"
+                  ]
+                ]
+              },
+              "passed": false,
+              "message": "Segments have lengths 0.00 and 98.99"
+            },
+            {
+              "condition": {
+                "type": "angle_value",
+                "points": [
+                  [
+                    "B",
+                    "C",
+                    "D"
+                  ]
+                ],
+                "value": 50
+              },
+              "passed": false,
+              "message": "Could not find all points"
+            }
+          ],
+          "passed_conditions": [
+            {
+              "type": "point_on_segment",
+              "point": "O",
+              "segment": [
+                "A",
+                "B"
+              ]
+            }
+          ]
+        }
+      },
+      "memory_path": "/Users/ooongs/Github/pyggb/agent_images/377_memory.json"
+    },
+    {
+      "problem_id": "380",
+      "success": false,
+      "iterations": 5,
+      "final_dsl": "# Define points A, B, C, D with non-parallel lines\npoint : 0 0 -> A\npoint : 100 0 -> B\npoint : 50 100 -> C\npoint : 150 50 -> D  # Adjusted to ensure lines are not parallel\n\n# Construct lines AB and CD\nline : A B -> line_AB\nline : C D -> line_CD\n\n# Find intersection point O\nintersect : line_AB line_CD -> O\n\n# Construct perpendicular line EO to CD at O\northogonal_line : O line_CD -> line_EO\n\n# Define point E on line_EO such that ∠AOE = 36°\nrotate : A 36° O -> E\n\n# Ensure O is on segments AB and CD\nsegment : A O -> AO\nsegment : C O -> CO",
+      "summary": {
+        "problem_id": "380",
+        "problem_text": "直线AB,CD相交于点O,EO⊥CD于点O,∠AOE=36°",
+        "total_steps": 5,
+        "successful_executions": 4,
+        "duration_seconds": 27.049164,
+        "final_success": false,
+        "has_final_dsl": true
+      },
+      "session_id": "380_gpt-4o_vision_20260105_000701",
+      "log_file": "agent_logs/gpt-4o_vision_20260105_000701/sessions/380_gpt-4o_vision.log",
+      "images": [
+        "agent_logs/gpt-4o_vision_20260105_000701/images/380_gpt-4o_vision_iter2.png",
+        "agent_logs/gpt-4o_vision_20260105_000701/images/380_gpt-4o_vision_iter3.png",
+        "agent_logs/gpt-4o_vision_20260105_000701/images/380_gpt-4o_vision_iter4.png",
+        "agent_logs/gpt-4o_vision_20260105_000701/images/380_gpt-4o_vision_iter5.png"
+      ],
+      "validation_result": {
+        "success": false,
+        "total_score": 0.475,
+        "object_score": 1.0,
+        "condition_score": 0.25,
+        "missing_objects": {
+          "points": [],
+          "segments": [],
+          "lines": [],
+          "circles": [],
+          "polygons": []
+        },
+        "failed_conditions": [
+          {
+            "type": "point_on_segment",
+            "point": "O",
+            "segment": [
+              "A",
+              "B"
+            ],
+            "validation_message": "Point is not on segment (distances: 59.75 + 35.85 = 95.59, segment: 23.90)"
+          },
+          {
+            "type": "point_on_segment",
+            "point": "O",
+            "segment": [
+              "C",
+              "D"
+            ],
+            "validation_message": "Point is not on segment (distances: 53.44 + 26.72 = 80.16, segment: 26.72)"
+          },
+          {
+            "type": "perpendicular",
+            "objects": [
+              [
+                "E",
+                "O"
+              ],
+              [
+                "C",
+                "D"
+              ]
+            ],
+            "validation_message": "Lines are not perpendicular"
+          }
+        ],
+        "has_dataset_error": false,
+        "dataset_error_types": [],
+        "details": {
+          "object_details": {
+            "total_required": 12,
+            "total_found": 12,
+            "validation_mode": "hybrid"
+          },
+          "found_objects": {
+            "points": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
+              "O"
+            ],
+            "segments": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "O"
+              ]
+            ],
+            "lines": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "C",
+                "D"
+              ],
+              [
+                "E",
+                "O"
+              ]
+            ],
+            "circles": [],
+            "polygons": []
+          },
+          "condition_details": [
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "O",
+                "segment": [
+                  "A",
+                  "B"
+                ]
+              },
+              "passed": false,
+              "message": "Point is not on segment (distances: 59.75 + 35.85 = 95.59, segment: 23.90)"
+            },
+            {
+              "condition": {
+                "type": "point_on_segment",
+                "point": "O",
+                "segment": [
+                  "C",
+                  "D"
+                ]
+              },
+              "passed": false,
+              "message": "Point is not on segment (distances: 53.44 + 26.72 = 80.16, segment: 26.72)"
+            },
+            {
+              "condition": {
+                "type": "perpendicular",
+                "objects": [
+                  [
+                    "E",
+                    "O"
+                  ],
+                  [
+                    "C",
+                    "D"
+                  ]
+                ]
+              },
+              "passed": false,
+              "message": "Lines are not perpendicular"
+            },
+            {
+              "condition": {
+                "type": "angle_value",
+                "points": [
+                  [
+                    "A",
+                    "O",
+                    "E"
+                  ]
+                ],
+                "value": 36
+              },
+              "passed": true,
+              "message": "Angle is 36.00° (reflex 324.00°), expected 36° (tolerance 1.0°); closest match: 36.00°"
+            }
+          ],
+          "passed_conditions": [
+            {
+              "type": "angle_value",
+              "points": [
+                [
+                  "A",
+                  "O",
+                  "E"
+                ]
+              ],
+              "value": 36
+            }
+          ]
+        }
+      },
+      "memory_path": "/Users/ooongs/Github/pyggb/agent_images/380_memory.json"
+    }
+  ],
+  "problem_details": [
+    {
+      "problem_id": "367",
+      "success": true,
+      "iterations": 1,
+      "hallucinations": [],
+      "hallucination_count": 0,
+      "missing_objects": {},
+      "missing_objects_count": 0,
+      "failed_conditions": [],
+      "failed_conditions_count": 0,
+      "success_step": 1,
+      "object_score": 1.0,
+      "condition_score": 1.0,
+      "total_score": 1.0
+    },
+    {
+      "problem_id": "368",
+      "success": false,
+      "iterations": 5,
+      "hallucinations": [
+        {
+          "step": 1,
+          "error_type": "undefined_reference",
+          "error_message": "Error at line 5: `circumcircle : A B C -> circle_O`\n\n❌ Unknown command 'circumcircle' with input types (Point, Point, Point). This command may not exist or may not accept these input types.\n\nSuggestio"
+        },
+        {
+          "step": 2,
+          "error_type": "undefined_reference",
+          "error_message": "Error at line 5: `circumcircle : A B C -> O_circum`\n\n❌ Unknown command 'circumcircle' with input types (Point, Point, Point). This command may not exist or may not accept these input types.\n\nSuggestio"
+        },
+        {
+          "step": 3,
+          "error_type": "undefined_reference",
+          "error_message": "Error at line 4: `circumcenter : A B C -> O`\n\n❌ Unknown command 'circumcenter' with input types (Point, Point, Point). This command may not exist or may not accept these input types.\n\nSuggestions:\n   "
+        },
+        {
+          "step": 4,
+          "error_type": "undefined_reference",
+          "error_message": "Error at line 4: `circumcenter : A B C -> O`\n\n❌ Unknown command 'circumcenter' with input types (Point, Point, Point). This command may not exist or may not accept these input types.\n\nSuggestions:\n   "
+        },
+        {
+          "step": 5,
+          "error_type": "undefined_reference",
+          "error_message": "Error at line 5: `circumcircle : A B C -> circle_O`\n\n❌ Unknown command 'circumcircle' with input types (Point, Point, Point). This command may not exist or may not accept these input types.\n\nSuggestio"
+        }
+      ],
+      "hallucination_count": 5,
+      "missing_objects": {},
+      "missing_objects_count": 0,
+      "failed_conditions": [],
+      "failed_conditions_count": 0,
+      "success_step": null,
+      "object_score": 0.0,
+      "condition_score": 0.0,
+      "total_score": 0.0
+    },
+    {
+      "problem_id": "370",
+      "success": false,
+      "iterations": 5,
+      "hallucinations": [
+        {
+          "step": 1,
+          "error_type": "other_error",
+          "error_message": "Error at line 13: `intersect : line_DF AB -> E`\n\n❌ GEOMETRIC ERROR\n   Cannot find intersection of parallel lines. Line 1 normal: (0.0000, 1.0000), Line 2 normal: (0.0000, 1.0000), Determinant: 0.00000"
+        }
+      ],
+      "hallucination_count": 1,
+      "missing_objects": {},
+      "missing_objects_count": 0,
+      "failed_conditions": [],
+      "failed_conditions_count": 0,
+      "success_step": null,
+      "object_score": 1.0,
+      "condition_score": 0.7142857142857143,
+      "total_score": 0.8
+    },
+    {
+      "problem_id": "377",
+      "success": false,
+      "iterations": 5,
+      "hallucinations": [
+        {
+          "step": 1,
+          "error_type": "undefined_reference",
+          "error_message": "RuntimeError: Parse error at line 4: `parallel_line : C line : A B -> line_CD`\n\n❌ KeyError: \"Unknown element or invalid expression: 'line'\"\n\n💡 TIP: Check the DSL syntax for this line.\nDSL Preview:\n# D"
+        },
+        {
+          "step": 2,
+          "error_type": "syntax_error",
+          "error_message": "RuntimeError: Parse error at line 10: `point : M -> O`\n\n❌ ValueError: Duplicate label 'O'. This element name is already defined.\n\n💡 TIP: Check the DSL syntax for this line.\nDSL Preview:\n# Define point"
+        },
+        {
+          "step": 4,
+          "error_type": "syntax_error",
+          "error_message": "RuntimeError: Parse error at line 10: `point : M -> O`\n\n❌ ValueError: Duplicate label 'O'. This element name is already defined.\n\n💡 TIP: Check the DSL syntax for this line.\nDSL Preview:\n# Define point"
+        },
+        {
+          "step": 5,
+          "error_type": "syntax_error",
+          "error_message": "RuntimeError: Parse error at line 11: `line : C D -> line_CD`\n\n❌ ValueError: Duplicate label 'line_CD'. This element name is already defined.\n\n💡 TIP: Check the DSL syntax for this line.\nDSL Preview:\n#"
+        }
+      ],
+      "hallucination_count": 4,
+      "missing_objects": {},
+      "missing_objects_count": 0,
+      "failed_conditions": [],
+      "failed_conditions_count": 0,
+      "success_step": null,
+      "object_score": 0.7857142857142857,
+      "condition_score": 0.2,
+      "total_score": 0.37571428571428567
+    },
+    {
+      "problem_id": "380",
+      "success": false,
+      "iterations": 5,
+      "hallucinations": [
+        {
+          "step": 1,
+          "error_type": "other_error",
+          "error_message": "Error at line 7: `intersect : line_AB line_CD -> O`\n\n❌ GEOMETRIC ERROR\n   Cannot find intersection of parallel lines. Line 1 normal: (0.0000, 1.0000), Line 2 normal: (0.0000, 1.0000), Determinant: 0.0"
+        }
+      ],
+      "hallucination_count": 1,
+      "missing_objects": {},
+      "missing_objects_count": 0,
+      "failed_conditions": [],
+      "failed_conditions_count": 0,
+      "success_step": null,
+      "object_score": 1.0,
+      "condition_score": 0.25,
+      "total_score": 0.475
+    }
+  ],
+  "validation_errors": {
+    "summary": {
+      "total_errors": 0,
+      "errors_by_type": {},
+      "errors_by_condition": {},
+      "unique_problems_with_errors": 0,
+      "problems_with_errors": []
+    },
+    "errors": []
+  }
+}

@@ -507,23 +507,30 @@ class Construction:
                         if len(self.element_dict) > 10:
                             error_msg += f" ... and {len(self.element_dict) - 10} more"
 
+                elif error_type == "ValueError":
+                    # Geometric degenerate cases or invalid values
+                    error_msg += f"❌ GEOMETRIC ERROR\n"
+                    error_msg += f"   {error_str}\n\n"
+                    error_msg += f"💡 TIP: Check that your geometric construction is valid.\n"
+                    error_msg += f"   Common issues:\n"
+                    error_msg += f"   - Trying to create a line/segment through identical points\n"
+                    error_msg += f"   - Trying to intersect parallel lines\n"
+                    error_msg += f"   - Intersection point outside ray/segment bounds\n"
+                    error_msg += f"   - Circle with zero or negative radius\n"
+
                 elif error_type == "AssertionError":
-                    # Likely output count mismatch or invalid command format
+                    # Now only legitimate output count mismatches should reach here
                     if hasattr(command, 'output_elements'):
-                        error_msg += f"❌ COMMAND EXECUTION FAILED\n"
-                        error_msg += f"   Most likely cause: Output count mismatch\n"
-                        error_msg += f"   Command '{command.name}' may require different number of outputs.\n\n"
-                        error_msg += f"   Check:\n"
-                        error_msg += f"   - Does this command exist?\n"
-                        error_msg += f"   - Are you providing the correct number of outputs?\n"
-                        error_msg += f"   - Are input types correct?\n"
+                        error_msg += f"❌ OUTPUT COUNT MISMATCH\n"
+                        error_msg += f"   {error_str}\n"
+                        error_msg += f"   Command '{command.name}' returned wrong number of outputs.\n\n"
+                        error_msg += f"   Common causes:\n"
+                        error_msg += f"   - intersect command may return 1 or 2 points depending on geometry\n"
+                        error_msg += f"   - Command signature may be incorrect\n"
                     else:
                         error_msg += f"❌ ASSERTION ERROR\n"
+                        error_msg += f"   {error_str}\n"
                         error_msg += f"   Invalid command format or constraint violation.\n"
-
-                elif error_type == "ValueError":
-                    error_msg += f"❌ VALUE ERROR: {error_str}\n"
-                    error_msg += f"   Invalid value or type in the command.\n"
 
                 elif "Unknown element or invalid expression" in error_str:
                     error_msg += f"❌ {error_str}\n"

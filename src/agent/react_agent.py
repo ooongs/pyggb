@@ -65,6 +65,15 @@ class ErrorHintManager:
             r"parallel.*assert",
             r"constraint",
         ],
+        "geometric": [
+            r"cannot create.*identical",
+            r"cannot create.*zero",
+            r"cannot find intersection.*parallel",
+            r"intersection.*outside",
+            r"polar.*center",
+            r"geometric error",
+            r"non-positive radius",
+        ],
     }
 
     def __init__(self, hints_dir: Optional[str] = None):

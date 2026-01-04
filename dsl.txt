@@ -1,21 +1,18 @@
-point : 0 0 -> O
-point : 100 0 -> A
-point : 100*cos(140°) 100*sin(140°) -> B
-
-circle : O A -> circle_O
-
-line : O A -> line_OA
-line : O B -> line_OB
+point : 0 0 -> C
+point : 100*cos(-25°) 100*sin(-25°) -> A
+point : 120*cos(25°) 120*sin(25°) -> B
 segment : A B -> AB
-segment : O A -> OA
-segment : O B -> OB
-
-orthogonal_line : A line_OA -> tangent_A
-orthogonal_line : B line_OB -> tangent_B
-intersect : tangent_A tangent_B -> P
-segment : P A -> PA
-segment : P B -> PB
-
-rotate : A 180° O -> C
-segment : A C -> AC
-line : A C -> line_AC
+line : A B -> line_AB
+parallel_line : C line_AB -> line_CD
+circle : C 150 -> circle_C150
+intersect : line_CD circle_C150 -> D D2
+line : C A -> line_CA
+intersect : line_AB line_CA -> O
+circle : O A -> circle_OA
+line : C O -> line_CO
+intersect : line_CO circle_OA -> P
+segment : C P -> CP
+segment : C D -> CD
+segment : A O -> AO
+#segment : P O -> PO
+segment : A B -> AB_seg
