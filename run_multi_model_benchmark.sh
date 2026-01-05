@@ -24,7 +24,7 @@ API_BASE=""
 
 # Default models list (customize as needed)
 DEFAULT_MODELS=(
-    "gpt-5-mini"
+    # "gpt-5.1"
     # "gpt-4.1"
     # "gpt-5.1"
     # "claude-sonnet-4-5"
@@ -32,7 +32,7 @@ DEFAULT_MODELS=(
     # "Qwen/Qwen2.5-VL-7B-Instruct"
     # "meta-llama/Llama-3.2-11B-Vision-Instruct"
     # "gemini-2.5-pro"
-    # "gemini-3-flash-preview"
+    "gemini-3-flash-preview"
 )
 
 # Color codes for output
@@ -187,6 +187,7 @@ for MODEL in "${MODELS[@]}"; do
     CMD="$CMD --output '$OUTPUT_FILE'"
     CMD="$CMD $LIMIT"
     CMD="$CMD $VERBOSE"
+    CMD="$CMD --no-vision"
     
     # Set API base if provided
     if [ -n "$API_BASE" ]; then

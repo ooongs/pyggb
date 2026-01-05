@@ -135,16 +135,23 @@ class AgentLogger:
     def start_problem(self, problem_id: str, problem_text: str) -> str:
         """
         Start logging a new problem.
-        
+
         Args:
             problem_id: Problem identifier
             problem_text: Problem description
-            
+
         Returns:
             Session ID (format: problem_id_timestamp)
         """
         session_id = f"{problem_id}_{self.run_id}"
-        
+
+        # In resume mode, remove existing entry for this problem_id to avoid duplicates
+        if self.resume_mode:
+            self.problems_logged = [
+                p for p in self.problems_logged
+                if p.get("problem_id") != problem_id
+            ]
+
         # Track this problem
         self.problems_logged.append({
             "problem_id": problem_id,

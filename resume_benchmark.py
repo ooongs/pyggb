@@ -193,7 +193,7 @@ Examples:
 
     parser.add_argument(
         "--use-vision",
-        action="store_true",
+        type=bool,
         help="Enable vision mode (default: auto-detect from log dir)"
     )
 
@@ -213,7 +213,8 @@ Examples:
     # Auto-detect model and settings from log directory
     log_info = get_log_dir_info(log_dir)
     model = args.model or log_info["model"]
-    use_vision = args.use_vision or log_info["use_vision"]
+    use_vision = args.use_vision 
+    use_vision = False
 
     if not model:
         print(f"❌ Error: Could not detect model from directory name. Please specify --model")
@@ -290,8 +291,8 @@ Examples:
         missing = set(problem_ids_to_run) - set(p.id for p in problems_to_run)
         print(f"⚠️  Warning: {len(missing)} problem IDs not found in dataset: {missing}")
 
-    # Run benchmark
-    result_file = log_dir / "result.json"
+    # Run benchmark (use absolute path to ensure merge works)
+    result_file = (log_dir / "result.json").resolve()
 
     try:
         # Create runner with resume_dir
