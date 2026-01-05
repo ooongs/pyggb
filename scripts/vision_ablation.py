@@ -50,6 +50,12 @@ def parse_args() -> argparse.Namespace:
         help=f"Dataset file (default: {DEFAULT_DATASET})",
     )
     parser.add_argument(
+        "--problem-id",
+        type=str,
+        default=None,
+        help="Solve a single problem by ID (disables --batch mode options)",
+    )
+    parser.add_argument(
         "--max-iter",
         type=int,
         default=5,
@@ -79,9 +85,37 @@ def parse_args() -> argparse.Namespace:
         help="Pass --verbose through to the benchmark runner",
     )
     parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Pass --debug through to the benchmark runner",
+    )
+    parser.add_argument(
         "--no-save-images",
         action="store_true",
         help="Disable saving intermediate images during benchmarking",
+    )
+    parser.add_argument(
+        "--additional-prompt",
+        type=Path,
+        default=None,
+        help="Path to text file appended to the system prompt",
+    )
+    parser.add_argument(
+        "--resume-memory",
+        type=Path,
+        default=None,
+        help="Path to memory JSON file to resume from (single-problem mode only)",
+    )
+    parser.add_argument(
+        "--resume-from-iteration",
+        type=int,
+        default=None,
+        help="Resume from the next iteration after this step (requires --resume-memory)",
+    )
+    parser.add_argument(
+        "--reexecute-last",
+        action="store_true",
+        help="Re-execute DSL from the last loaded iteration (requires --resume-memory)",
     )
     parser.add_argument(
         "--vision-only",
@@ -139,24 +173,35 @@ def build_benchmark_cmd(use_vision: bool, output_path: Path, args: argparse.Name
     cmd = [
         sys.executable,
         str(REPO_ROOT / "run_agent_benchmark.py"),
-        "--batch",
         "--model",
         args.model,
         "--dataset",
         str(args.dataset),
         "--max-iter",
         str(args.max_iter),
-        "--start-idx",
-        str(args.start_idx),
         "--output",
         str(output_path),
     ]
+    if args.problem_id:
+        cmd += ["--problem-id", args.problem_id]
+    else:
+        cmd += ["--batch", "--start-idx", str(args.start_idx)]
     if args.limit is not None:
         cmd += ["--limit", str(args.limit)]
     if args.verbose:
         cmd.append("--verbose")
+    if args.debug:
+        cmd.append("--debug")
     if args.no_save_images:
         cmd.append("--no-save-images")
+    if args.additional_prompt:
+        cmd += ["--additional-prompt", str(args.additional_prompt)]
+    if args.resume_memory:
+        cmd += ["--resume-memory", str(args.resume_memory)]
+    if args.resume_from_iteration is not None:
+        cmd += ["--resume-from-iteration", str(args.resume_from_iteration)]
+    if args.reexecute_last:
+        cmd.append("--reexecute-last")
     if not use_vision:
         cmd.append("--no-vision")
     return cmd
@@ -167,6 +212,8 @@ def collect_metrics(result_path: Path) -> Dict[str, float]:
     with open(result_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     metrics = data.get("metrics", {})
+    if isinstance(metrics, dict) and isinstance(metrics.get("summary"), dict):
+        metrics = metrics["summary"]
     return {
         "success_rate": metrics.get("success_rate", 0.0),
         "average_success_steps": metrics.get("average_success_steps", 0.0),
@@ -265,6 +312,12 @@ def main() -> int:
 
     if args.vision_only and args.no_vision_only:
         raise SystemExit("Cannot use both --vision-only and --no-vision-only")
+    if args.problem_id and (args.limit is not None or args.start_idx != 0):
+        raise SystemExit("--problem-id cannot be combined with --limit or --start-idx")
+    if (args.resume_memory or args.resume_from_iteration is not None or args.reexecute_last) and not args.problem_id:
+        raise SystemExit("Resume options require --problem-id (single-problem mode)")
+    if args.resume_from_iteration is not None and not args.resume_memory:
+        raise SystemExit("--resume-from-iteration requires --resume-memory")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = args.output_dir / f"vision_ablation_{timestamp}"
