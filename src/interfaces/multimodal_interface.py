@@ -35,19 +35,25 @@ class MultimodalInterface:
     """Interface for vision-enabled LLMs."""
     
     def __init__(self, model: str = "gpt-4o", api_key: Optional[str] = None,
-                 api_base: Optional[str] = None):
+                 api_base: Optional[str] = None, use_cache: bool = True,
+                 cache_ttl: str = "18000s"):
         """
         Initialize multimodal interface.
-        
+
         Args:
-            model: Model name (gpt-4o, gpt-4-vision-preview, claude-3-5-sonnet-20241022, 
+            model: Model name (gpt-4o, gpt-4-vision-preview, claude-3-5-sonnet-20241022,
                               or vLLM model name like Qwen/Qwen2.5-VL-7B-Instruct)
             api_key: API key (if None, loads from environment)
             api_base: API base URL for vLLM or custom endpoints
+            use_cache: Enable context caching for Gemini models (system_prompt caching)
+            cache_ttl: Cache time-to-live (e.g., "3600s" for 1 hour, default)
         """
         self.model = model
         self.api_key = api_key
         self.api_base = api_base or os.getenv("OPENAI_API_BASE")
+        self.use_cache = use_cache
+        self.cache_ttl = cache_ttl
+        self._cache = None  # Store Gemini cache object
 
         # OpenRouter support (OpenAI-compatible)
         openrouter_key = os.getenv("OPENROUTER_API_KEY")
@@ -112,6 +118,14 @@ class MultimodalInterface:
         
         # Initialize client
         self._initialize_client()
+
+    def __del__(self):
+        """Cleanup: delete cache when interface is destroyed."""
+        try:
+            if hasattr(self, 'provider') and self.provider == "google" and hasattr(self, '_cache') and self._cache is not None:
+                self.clear_cache()
+        except:
+            pass  # Ignore errors during cleanup
     
     def _initialize_client(self):
         """Initialize the appropriate API client."""
@@ -294,6 +308,88 @@ class MultimodalInterface:
         
         return response.content[0].text
 
+    def _create_gemini_cache(self, system_prompt: str) -> Any:
+        """
+        Create a Gemini context cache for the system prompt.
+
+        Args:
+            system_prompt: The system prompt to cache
+
+        Returns:
+            Cache object from Gemini API
+        """
+        if not hasattr(self, "_google_types"):
+            raise RuntimeError("Google client not initialized (provider is not 'google').")
+
+        types = self._google_types
+
+        # Ensure model has explicit version suffix for caching
+        model_for_cache = self.model
+        if not any(model_for_cache.endswith(suffix) for suffix in ["-001", "-002", "-exp"]):
+            # Try to append default version if not specified
+            if "gemini-2.0-flash" in model_for_cache:
+                model_for_cache = "models/gemini-2.0-flash-001"
+            elif "gemini-1.5-pro" in model_for_cache:
+                model_for_cache = "models/gemini-1.5-pro-002"
+            elif "gemini-1.5-flash" in model_for_cache:
+                model_for_cache = "models/gemini-1.5-flash-002"
+
+        # Ensure "models/" prefix
+        if not model_for_cache.startswith("models/"):
+            model_for_cache = f"models/{model_for_cache}"
+
+        try:
+            cache = self.client.caches.create(
+                model=model_for_cache,
+                config=types.CreateCachedContentConfig(
+                    display_name=f"pyggb-cache-{hash(system_prompt) % 10000}",
+                    system_instruction=system_prompt,
+                    ttl=self.cache_ttl
+                )
+            )
+            print(f"✓ Cache created: {cache.name}")
+            return cache
+        except Exception as e:
+            error_msg = str(e)
+            # Don't show warning for "too small" errors - it's expected for short prompts
+            if "too small" in error_msg.lower() or "min_total_token_count" in error_msg:
+                print(f"Note: System prompt too short for caching (need ≥1024 tokens). Using non-cached requests.")
+            else:
+                print(f"Warning: Failed to create cache: {e}")
+                print("Falling back to non-cached requests")
+            return None
+
+    def _get_or_create_cache(self, system_prompt: Optional[str]) -> Optional[Any]:
+        """Get existing cache or create new one if caching is enabled."""
+        if not self.use_cache or not system_prompt:
+            return None
+
+        # Skip caching for experimental models (they don't support caching)
+        if "-exp" in self.model.lower() or "exp-" in self.model.lower():
+            return None
+
+        # Skip caching for Pro models (they require 4096+ tokens, while Flash models require 1024+)
+        # Pro models: gemini-1.5-pro, gemini-2.5-pro, etc.
+        if "pro" in self.model.lower() and "gemini" in self.model.lower():
+            return None
+
+        # Create cache if not exists
+        if self._cache is None:
+            self._cache = self._create_gemini_cache(system_prompt)
+
+        return self._cache
+
+    def clear_cache(self):
+        """Delete the Gemini cache if it exists."""
+        if self._cache is not None and hasattr(self.client, 'caches'):
+            try:
+                self.client.caches.delete(name=self._cache.name)
+                print(f"Cache {self._cache.name} deleted successfully")
+            except Exception as e:
+                print(f"Warning: Failed to delete cache: {e}")
+            finally:
+                self._cache = None
+
     def _send_google(self, message: MultimodalMessage, system_prompt: Optional[str],
                      temperature: float = 1.0, max_tokens: int = 4000) -> str:
         """Send message to Google Gemini API via google-genai SDK."""
@@ -323,12 +419,23 @@ class MultimodalInterface:
         if message.text:
             parts.append(types.Part.from_text(text=message.text))
 
+        # Try to use cache if enabled
+        cache = self._get_or_create_cache(system_prompt)
+
         config_kwargs: Dict[str, Any] = {
             "temperature": temperature,
             "max_output_tokens": max_tokens,
-            "thinking_config": types.ThinkingConfig(thinking_level="low")
         }
-        if system_prompt:
+
+        # Add thinking_config only for models that support it (Gemini 2.0 Flash Thinking)
+        model_lower = self.model.lower()
+        if "thinking" in model_lower or "gemini-2.0-flash-thinking" in model_lower:
+            config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level="low")
+
+        # If cache is available, use it instead of system_instruction
+        if cache is not None:
+            config_kwargs["cached_content"] = cache.name
+        elif system_prompt:
             config_kwargs["system_instruction"] = system_prompt
 
         response = self.client.models.generate_content(
@@ -337,6 +444,13 @@ class MultimodalInterface:
             config=types.GenerateContentConfig(**config_kwargs),
         )
         print(response)
+
+        # Print cache usage statistics if available
+        if hasattr(response, 'usage_metadata') and cache is not None:
+            metadata = response.usage_metadata
+            if hasattr(metadata, 'cached_content_token_count'):
+                print(f"Cache hit! Cached tokens: {metadata.cached_content_token_count}")
+                print(f"New tokens: {getattr(metadata, 'prompt_token_count', 0) - metadata.cached_content_token_count}")
 
         # google-genai returns .text for common text outputs, but fall back to parts
         text = getattr(response, "text", None)

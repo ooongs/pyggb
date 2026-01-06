@@ -195,6 +195,9 @@ Your task:
 1. Determine if this problem can be used for geometric figure construction
 2. Remove non-construction content (questions, scores, "如图", etc.)
 3. Keep ONLY the geometric setup conditions
+4. Reject any problem in which geometric objects are not explicitly defined using formal symbolic identifiers (e.g., points A, B, C; lines AB; circles with center O).
+In particular, do not parse or accept problems that:
+	Describe geometry using only natural-language entities such as people, tools, sunlight, windows, shadows, lamps, or illuminated regions.
 
 **REJECTION CRITERIA** (return is_valid: false if ANY apply):
 
@@ -455,7 +458,7 @@ Return JSON:
 **SUPPORTED CONDITION TYPES**:
 - Basic: parallel, perpendicular, collinear, not_collinear, concurrent
 - Angles: angle_value, angle_equality, angle_sum, angle_bisector, angle_ratio
-- Segments: segment_equality, distance_equals, segment_length, perimeter, segments_sum_value, segments_sum_equals, segment_ratio
+- Segments: segment_equality, distance_equals, perimeter, segments_sum_value, segments_sum_equals, segment_ratio
 - Points: point_on_segment, point_on_line, point_on_line_extension, point_on_segment_extension, midpoint_of, point_between, order_on_line, same_side
 - Circles: point_on_circle, concyclic, concentric_circles, tangent_line, tangent_at_point, diameter, point_inside_circle
 - Polygons: triangle_valid, isosceles_triangle, right_triangle, polygon_property, polygon_type, square, regular_polygon
@@ -489,7 +492,7 @@ Return JSON:
    - segment_ratio: Use "segment1", "segment2", "ratio" fields (e.g., AB=3CD → ratio: [3, 1])
    - Ratio format is always [numerator, denominator] where numerator/denominator = first/second
 7. For segment conditions:
-   - Use "segment_length" or "distance_equals" for absolute lengths
+   - Use "distance_equals" for absolute lengths
    - Use "segment_equality" for equal lengths without specific values
    - Use "segments_sum_value" for sum equals a value
    - Use "segments_sum_equals" for sum equals another segment

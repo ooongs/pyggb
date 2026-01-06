@@ -31,8 +31,9 @@ DEFAULT_MODELS=(
     # Add vLLM models here
     # "Qwen/Qwen2.5-VL-7B-Instruct"
     # "meta-llama/Llama-3.2-11B-Vision-Instruct"
-    # "gemini-2.5-pro"
-    "gemini-3-flash-preview"
+    # "gemini-2.5-flash"
+    "gemini-2.5-pro"
+    # "gemini-3-flash-preview"
 )
 
 # Color codes for output
@@ -187,7 +188,6 @@ for MODEL in "${MODELS[@]}"; do
     CMD="$CMD --output '$OUTPUT_FILE'"
     CMD="$CMD $LIMIT"
     CMD="$CMD $VERBOSE"
-    CMD="$CMD --no-vision"
     
     # Set API base if provided
     if [ -n "$API_BASE" ]; then

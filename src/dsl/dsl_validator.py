@@ -53,7 +53,7 @@ class ValidationErrorLogger:
         "segment_equality", "collinear", "not_collinear", "concyclic",
         "concurrent", "point_on_line", "point_on_circle", "angle_bisector",
         "point_on_segment", "midpoint_of", "distance_equals", "triangle_valid",
-        "point_between", "concentric_circles",
+        "point_between", "concentric_circles", "segment_length",
         "angle_sum", "isosceles_triangle", "right_triangle",
         "perpendicular_bisector", "point_on_line_extension", "point_on_segment_extension",
         "same_side", "point_inside_circle",
@@ -951,7 +951,7 @@ class DSLValidator:
                 return self._check_point_on_segment(condition.data)
             elif condition_type == "midpoint_of":
                 return self._check_midpoint_of(condition.data)
-            elif condition_type == "distance_equals":
+            elif condition_type in ["distance_equals","segment_length"]:
                 return self._check_distance_equals(condition.data)
             elif condition_type == "triangle_valid":
                 return self._check_triangle_valid(condition.data)

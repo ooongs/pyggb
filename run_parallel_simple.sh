@@ -5,7 +5,7 @@
 # Configuration
 INPUT_DIR="${INPUT_DIR:-data-5/GeoQA3/json}"
 OUTPUT_DIR="${OUTPUT_DIR:-data}"
-MODEL="${MODEL:-gpt-5.1}"
+MODEL="${MODEL:-gpt-5-mini}"
 
 echo "Parallel dataset creation started..."
 echo ""
@@ -15,11 +15,11 @@ mkdir -p "$OUTPUT_DIR"
 
 # Run multiple ranges in parallel in the background
 echo "Range 0-500 started..."
-python scripts/create_dataset.py --input-dir "$INPUT_DIR" --output-dir "$OUTPUT_DIR" --start 0 --end 300 --model "$MODEL" > "$OUTPUT_DIR/log_0_500.log" 2>&1 &
+python scripts/create_dataset.py --input-dir "$INPUT_DIR" --output-dir "$OUTPUT_DIR" --start 1700 --end 1730 --model "$MODEL" > "$OUTPUT_DIR/log_0_500.log" 2>&1 &
 PID1=$!
 
 echo "Range 500-1000 started..."
-python scripts/create_dataset.py --input-dir "$INPUT_DIR" --output-dir "$OUTPUT_DIR" --start 300 --end 600 --model "$MODEL" > "$OUTPUT_DIR/log_500_1000.log" 2>&1 &
+python scripts/create_dataset.py --input-dir "$INPUT_DIR" --output-dir "$OUTPUT_DIR" --start 1800 --end 1830 --model "$MODEL" > "$OUTPUT_DIR/log_500_1000.log" 2>&1 &
 PID2=$!
 
 # If more ranges are needed, uncomment the following lines
@@ -30,8 +30,8 @@ PID2=$!
 echo ""
 echo "All processes are running in the background."
 echo "Check progress:"
-echo "  tail -f $OUTPUT_DIR/log_0_500.log"
-echo "  tail -f $OUTPUT_DIR/log_500_1000.log"
+echo "  tail -f $OUTPUT_DIR/log_1500.log"
+echo "  tail -f $OUTPUT_DIR/log_1550.log"
 echo ""
 echo "프로세스 ID: $PID1, $PID2"
 echo ""

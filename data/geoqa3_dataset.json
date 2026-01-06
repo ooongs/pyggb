@@ -1,271 +1,7 @@
 {
   "metadata": {
     "created_at": "2025-12-07T14:44:20.991479",
-    "total_problems": 507,
-    "skipped": 255,
-    "errors": 0,
-    "skipped_ids": [
-      "369",
-      "371",
-      "372",
-      "373",
-      "374",
-      "375",
-      "381",
-      "382",
-      "385",
-      "386",
-      "387",
-      "389",
-      "391",
-      "22",
-      "29",
-      "30",
-      "43",
-      "48",
-      "52",
-      "59",
-      "61",
-      "63",
-      "78",
-      "82",
-      "84",
-      "91",
-      "96",
-      "106",
-      "107",
-      "109",
-      "110",
-      "112",
-      "138",
-      "140",
-      "152",
-      "153",
-      "157",
-      "161",
-      "162",
-      "165",
-      "174",
-      "175",
-      "176",
-      "177",
-      "183",
-      "188",
-      "191",
-      "193",
-      "194",
-      "200",
-      "202",
-      "209",
-      "215",
-      "219",
-      "220",
-      "227",
-      "230",
-      "235",
-      "237",
-      "243",
-      "255",
-      "258",
-      "259",
-      "260",
-      "263",
-      "265",
-      "270",
-      "278",
-      "293",
-      "297",
-      "304",
-      "316",
-      "321",
-      "323",
-      "332",
-      "336",
-      "338",
-      "339",
-      "340",
-      "342",
-      "344",
-      "346",
-      "347",
-      "353",
-      "360",
-      "366",
-      "396",
-      "397",
-      "399",
-      "402",
-      "405",
-      "406",
-      "413",
-      "417",
-      "418",
-      "420",
-      "424",
-      "426",
-      "428",
-      "430",
-      "433",
-      "434",
-      "435",
-      "436",
-      "437",
-      "439",
-      "442",
-      "444",
-      "446",
-      "448",
-      "450",
-      "453",
-      "459",
-      "460",
-      "461",
-      "463",
-      "465",
-      "467",
-      "469",
-      "470",
-      "471",
-      "472",
-      "476",
-      "477",
-      "479",
-      "480",
-      "482",
-      "483",
-      "484",
-      "487",
-      "490",
-      "494",
-      "495",
-      "498",
-      "500",
-      "504",
-      "506",
-      "508",
-      "509",
-      "512",
-      "513",
-      "517",
-      "520",
-      "521",
-      "524",
-      "526",
-      "527",
-      "528",
-      "530",
-      "531",
-      "533",
-      "534",
-      "536",
-      "537",
-      "544",
-      "546",
-      "547",
-      "548",
-      "549",
-      "550",
-      "554",
-      "557",
-      "563",
-      "564",
-      "565",
-      "569",
-      "570",
-      "571",
-      "573",
-      "575",
-      "576",
-      "577",
-      "578",
-      "579",
-      "580",
-      "588",
-      "592",
-      "594",
-      "598",
-      "600",
-      "601",
-      "602",
-      "603",
-      "606",
-      "607",
-      "611",
-      "614",
-      "615",
-      "622",
-      "631",
-      "649",
-      "660",
-      "667",
-      "691",
-      "697",
-      "703",
-      "705",
-      "710",
-      "713",
-      "717",
-      "721",
-      "731",
-      "735",
-      "806",
-      "834",
-      "837",
-      "855",
-      "864",
-      "865",
-      "885",
-      "933",
-      "938",
-      "947",
-      "987",
-      "990",
-      "998",
-      "1000",
-      "1004",
-      "1007",
-      "1017",
-      "1033",
-      "1042",
-      "1061",
-      "1065",
-      "1069",
-      "1080",
-      "1085",
-      "1096",
-      "1100",
-      "1101",
-      "1103",
-      "1115",
-      "1119",
-      "1120",
-      "1124",
-      "1128",
-      "1140",
-      "1147",
-      "1151",
-      "1156",
-      "1163",
-      "1165",
-      "1166",
-      "1168",
-      "1172",
-      "1173",
-      "1174",
-      "1175",
-      "1178",
-      "1179",
-      "1181",
-      "1184",
-      "1185",
-      "1190",
-      "1191"
-    ],
-    "error_ids": [],
-    "last_fixed": "2026-01-04T22:49:13.755880",
-    "fixes_applied": {
-      "circle_radius_key": 1
-    }
+    "last_fixed": "2026-01-04T22:49:13.755880"
   },
   "problems": [
     {
@@ -317,10 +53,7 @@
         {
           "type": "point_on_circle",
           "point": "A",
-          "circle": {
-            "center": "O",
-            "radius_point": "A"
-          }
+          "circle_center": "O"
         },
         {
           "type": "point_on_circle",
@@ -330,18 +63,12 @@
         {
           "type": "point_on_circle",
           "point": "C",
-          "circle": {
-            "center": "O",
-            "radius_point": "C"
-          }
+          "circle_center": "O"
         },
         {
           "type": "point_on_circle",
           "point": "D",
-          "circle": {
-            "center": "O",
-            "radius_point": "D"
-          }
+          "circle_center": "O"
         },
         {
           "type": "angle_value",
@@ -404,10 +131,7 @@
         {
           "type": "point_on_circle",
           "point": "A",
-          "circle": {
-            "center": "O",
-            "radius_point": "A"
-          }
+          "circle_center": "O"
         },
         {
           "type": "point_on_circle",
@@ -818,11 +542,9 @@
         {
           "type": "midpoint_of",
           "point": "O",
-          "objects": [
-            [
-              "C",
-              "D"
-            ]
+          "segment": [
+            "C",
+            "D"
           ]
         },
         {
@@ -41360,12 +41082,2031 @@
             ]
           ],
           "value": 60
+        },
+        {
+          "type": "tangent_at_point",
+          "line": [
+            "A",
+            "P"
+          ],
+          "circle_center": "O",
+          "tangent_point": "A"
+        },
+        {
+          "type": "tangent_at_point",
+          "line": [
+            "B",
+            "P"
+          ],
+          "circle_center": "O",
+          "tangent_point": "B"
+        },
+        {
+          "type": "tangent_at_point",
+          "line": [
+            "C",
+            "D"
+          ],
+          "circle_center": "O",
+          "tangent_point": "E"
         }
       ],
       "original_text": "如图,PA、PB、CD是⊙O的切线,切点分别是A、B、E,CD分别交PA、PB于C、D两点,若∠APB=60°,则∠COD的度数()",
       "cleaned_text": "PA、PB、CD是⊙O的切线,切点分别是A、B、E,CD分别交PA、PB于C、D两点,若∠APB=60°",
       "category": "Circle Properties & Constructions",
       "difficulty": 3
+    },
+    {
+      "id": "1662",
+      "subject": "⊙O是△ABC的外接圆,连接OB、OC,若⊙O的半径为2,∠BAC=60",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "O"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "B",
+            "O"
+          ],
+          [
+            "O",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "E",
+          "circle_center": "O"
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "B",
+              "A",
+              "C"
+            ]
+          ],
+          "value": 60
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "O",
+            "C"
+          ],
+          "value": 2.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "O",
+            "B"
+          ],
+          "value": 2.0
+        }
+      ],
+      "original_text": "如图,⊙O是△ABC的外接圆,连接OB、OC,若⊙O的半径为2,∠BAC=60°,则BC的长为()",
+      "cleaned_text": "⊙O是△ABC的外接圆,连接OB、OC,若⊙O的半径为2,∠BAC=60°",
+      "category": "Circle Properties & Constructions",
+      "difficulty": 2
+    },
+    {
+      "id": "2626",
+      "subject": "在⊙O中,弦AB,CD相交于点P,若∠ADC=20°",
+      "required_objects": {
+        "points": [
+          "O",
+          "A",
+          "B",
+          "C",
+          "D",
+          "P"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "A",
+            "D"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "D",
+              "C"
+            ]
+          ],
+          "value": 20.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "D",
+            "C"
+          ],
+          "value": 20.0
+        },
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "D",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_segment",
+          "point": "P",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "P",
+          "segment": [
+            "C",
+            "D"
+          ]
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,在⊙O中,弦AB,CD相交于点P,若∠ADC=20°,则∠B等于()",
+      "cleaned_text": "在⊙O中,弦AB,CD相交于点P,若∠ADC=20°"
+    },
+    {
+      "id": "2627",
+      "subject": "在Rt△ABC中,∠C=90°,AB=5,BC=4",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 5.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 4.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "在Rt△ABC中,∠C=90°,AB=5,BC=4,那么\\cosA为()",
+      "cleaned_text": "在Rt△ABC中,∠C=90°,AB=5,BC=4"
+    },
+    {
+      "id": "2648",
+      "subject": "AB,CD是⊙O的弦,AB⊥CD,BE是⊙O的直径．若AC=3",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "O",
+          "E"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "B",
+            "E"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "A",
+              "B"
+            ],
+            [
+              "C",
+              "D"
+            ]
+          ]
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 3.0
+        },
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "D",
+          "circle_center": "O"
+        },
+        {
+          "type": "midpoint_of",
+          "point": "O",
+          "segment": [
+            "B",
+            "E"
+          ]
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,AB,CD是⊙O的弦,AB⊥CD,BE是⊙O的直径．若AC=3,则DE的长是()",
+      "cleaned_text": "AB,CD是⊙O的弦,AB⊥CD,BE是⊙O的直径．若AC=3"
+    },
+    {
+      "id": "2800",
+      "subject": "点A,B,C,P在⊙O上,CD⊥OA,CE⊥OB,垂足分别为D,E,∠DCE=80°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "P",
+          "O",
+          "D",
+          "E"
+        ],
+        "segments": [
+          [
+            "C",
+            "D"
+          ],
+          [
+            "O",
+            "A"
+          ],
+          [
+            "C",
+            "E"
+          ],
+          [
+            "O",
+            "B"
+          ],
+          [
+            "D",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "P",
+          "circle_center": "O"
+        },
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "C",
+              "D"
+            ],
+            [
+              "O",
+              "A"
+            ]
+          ]
+        },
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "C",
+              "E"
+            ],
+            [
+              "O",
+              "B"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "D",
+              "C",
+              "E"
+            ]
+          ],
+          "value": 80.0
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "A",
+            "O"
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "E",
+          "segment": [
+            "B",
+            "O"
+          ]
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,点A,B,C,P在⊙O上,CD⊥OA,CE⊥OB,垂足分别为D,E,∠DCE=80°,则∠P的度数为()",
+      "cleaned_text": "点A,B,C,P在⊙O上,CD⊥OA,CE⊥OB,垂足分别为D,E,∠DCE=80°"
+    },
+    {
+      "id": "2807",
+      "subject": "在Rt△ABC中,∠C=90°,BC=3,AC=2",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 3.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 2.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "如图,在Rt△ABC中,∠C=90°,BC=3,AC=2,则tanB的值是()",
+      "cleaned_text": "在Rt△ABC中,∠C=90°,BC=3,AC=2"
+    },
+    {
+      "id": "2811",
+      "subject": "点O为△ABC内一点,OA=OB=OC,且∠ABO=40°",
+      "required_objects": {
+        "points": [
+          "O",
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "O",
+            "A"
+          ],
+          [
+            "O",
+            "B"
+          ],
+          [
+            "O",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "B",
+              "O"
+            ]
+          ],
+          "value": 40.0
+        },
+        {
+          "type": "segment_equality",
+          "segments": [
+            [
+              "O",
+              "A"
+            ],
+            [
+              "O",
+              "B"
+            ],
+            [
+              "O",
+              "C"
+            ]
+          ]
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,点O为△ABC内一点,OA=OB=OC,且∠ABO=40°,则∠ACB的大小是()",
+      "cleaned_text": "点O为△ABC内一点,OA=OB=OC,且∠ABO=40°"
+    },
+    {
+      "id": "2821",
+      "subject": "在Rt△ABC中,∠ACB=90°,CD是AB边上的中线,若BC=6,AC=8",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "midpoint_of",
+          "point": "D",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 6.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 8.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,在Rt△ABC中,∠ACB=90°,CD是AB边上的中线,若BC=6,AC=8,则tan∠ACD的值为()",
+      "cleaned_text": "在Rt△ABC中,∠ACB=90°,CD是AB边上的中线,若BC=6,AC=8"
+    },
+    {
+      "id": "2822",
+      "subject": "AB是⊙O的直径,C,D是⊙O上的点(A、B除外),∠AOD=130°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "O",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "O"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "O",
+              "D"
+            ]
+          ],
+          "value": 130.0
+        },
+        {
+          "type": "midpoint_of",
+          "point": "O",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "D",
+          "circle_center": "O"
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,AB是⊙O的直径,C,D是⊙O上的点(A、B除外),∠AOD=130°,则∠C的度数是()",
+      "cleaned_text": "AB是⊙O的直径,C,D是⊙O上的点(A、B除外),∠AOD=130°"
+    },
+    {
+      "id": "2824",
+      "subject": "在△ABC中,∠BAC=90°,AD⊥BC于D,若AB=3,AC=4",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "A"
+          ],
+          [
+            "A",
+            "D"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "A",
+              "D"
+            ],
+            [
+              "B",
+              "C"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "B",
+              "A",
+              "C"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 3.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 4.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,在△ABC中,∠BAC=90°,AD⊥BC于D,若AB=3,AC=4,则sin∠DAC的值为()",
+      "cleaned_text": "在△ABC中,∠BAC=90°,AD⊥BC于D,若AB=3,AC=4"
+    },
+    {
+      "id": "2826",
+      "subject": "在直角△ABC中,∠C=90°,若AB=5,AC=4",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 5.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 4.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "如图,在直角△ABC中,∠C=90°,若AB=5,AC=4,则tan∠B=()",
+      "cleaned_text": "在直角△ABC中,∠C=90°,若AB=5,AC=4"
+    },
+    {
+      "id": "2829",
+      "subject": "在Rt△ABC中,∠C为直角,CD⊥AB于D,已知AC=4,AB=5",
+      "required_objects": {
+        "points": [
+          "R",
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "C",
+              "D"
+            ],
+            [
+              "A",
+              "B"
+            ]
+          ]
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 4.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 5.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,在Rt△ABC中,∠C为直角,CD⊥AB于D,已知AC=4,AB=5,则tan∠BCD等于()",
+      "cleaned_text": "在Rt△ABC中,∠C为直角,CD⊥AB于D,已知AC=4,AB=5"
+    },
+    {
+      "id": "2832",
+      "subject": "在△ABC中,∠ACB=90°,∠A=15°,AB=8",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "C",
+              "A",
+              "B"
+            ]
+          ],
+          "value": 15.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 8.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,在△ABC中,∠ACB=90°,∠A=15°,AB=8,则AC•BC的值为()",
+      "cleaned_text": "在△ABC中,∠ACB=90°,∠A=15°,AB=8"
+    },
+    {
+      "id": "2835",
+      "subject": "在△ABC中,∠C=90°,AB=13,BC=5",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 13.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 5.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "如图,在△ABC中,∠C=90°,AB=13,BC=5,则sinA的值是()",
+      "cleaned_text": "在△ABC中,∠C=90°,AB=13,BC=5"
+    },
+    {
+      "id": "2836",
+      "subject": "在四边形ABCD中,E、F分別是AB、AD的中点,若EF=2,BC=5,CD=3",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "A",
+            "D"
+          ],
+          [
+            "E",
+            "F"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": [
+          [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        ]
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "E",
+            "F"
+          ],
+          "value": 2.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 5.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "C",
+            "D"
+          ],
+          "value": 3.0
+        },
+        {
+          "type": "midpoint_of",
+          "point": "E",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "midpoint_of",
+          "point": "F",
+          "segment": [
+            "A",
+            "D"
+          ]
+        }
+      ],
+      "category": "Polygon Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,在四边形ABCD中,E、F分別是AB、AD的中点,若EF=2,BC=5,CD=3,则tanC等于()",
+      "cleaned_text": "在四边形ABCD中,E、F分別是AB、AD的中点,若EF=2,BC=5,CD=3"
+    },
+    {
+      "id": "2837",
+      "subject": "已知在Rt△ABC中,∠C=90°,BC=1,AC=2",
+      "required_objects": {
+        "points": [
+          "R",
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 1.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 2.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "如图,已知在Rt△ABC中,∠C=90°,BC=1,AC=2,则tanA的值为()",
+      "cleaned_text": "已知在Rt△ABC中,∠C=90°,BC=1,AC=2"
+    },
+    {
+      "id": "2838",
+      "subject": "正方形ABCD边长为2,点E在CB的延长线上,BD=BE",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "D"
+          ],
+          [
+            "C",
+            "B"
+          ],
+          [
+            "B",
+            "D"
+          ],
+          [
+            "B",
+            "E"
+          ],
+          [
+            "A",
+            "D"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "polygon_property",
+          "polygon": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "property": "square"
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 2
+        },
+        {
+          "type": "segment_equality",
+          "segments": [
+            [
+              "B",
+              "D"
+            ],
+            [
+              "B",
+              "E"
+            ]
+          ]
+        },
+        {
+          "type": "point_on_line",
+          "point": "E",
+          "line": [
+            "C",
+            "B"
+          ]
+        }
+      ],
+      "category": "Polygon Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图所示,正方形ABCD边长为2,点E在CB的延长线上,BD=BE,则tan∠BAE的值为()",
+      "cleaned_text": "正方形ABCD边长为2,点E在CB的延长线上,BD=BE"
+    },
+    
+    {
+      "id": "2844",
+      "subject": "已知C、D在以AB为直径的⊙O上,若∠CAB=30°",
+      "required_objects": {
+        "points": [
+          "C",
+          "D",
+          "A",
+          "B",
+          "O"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "C",
+              "A",
+              "B"
+            ]
+          ],
+          "value": 30.0
+        },
+        {
+          "type": "midpoint_of",
+          "point": "O",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "D",
+          "circle_center": "O"
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,已知C、D在以AB为直径的⊙O上,若∠CAB=30°,则∠D的度数是()",
+      "cleaned_text": "已知C、D在以AB为直径的⊙O上,若∠CAB=30°"
+    },
+    {
+      "id": "2849",
+      "subject": "在Rt△ABC中,∠C=90°,BC=2,AC=3",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 2.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 3.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "如图,在Rt△ABC中,∠C=90°,BC=2,AC=3,则tanB的值是()",
+      "cleaned_text": "在Rt△ABC中,∠C=90°,BC=2,AC=3"
+    },
+    {
+      "id": "2865",
+      "subject": "AB是⊙O的直径,C是⊙O上一点,OD⊥BC于点D,AC=4",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "O",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "O",
+            "D"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "O",
+              "D"
+            ],
+            [
+              "B",
+              "C"
+            ]
+          ]
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 4.0
+        },
+        {
+          "type": "midpoint_of",
+          "point": "O",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,AB是⊙O的直径,C是⊙O上一点,OD⊥BC于点D,AC=4,则OD的长为()",
+      "cleaned_text": "AB是⊙O的直径,C是⊙O上一点,OD⊥BC于点D,AC=4"
+    },
+    {
+      "id": "2870",
+      "subject": "在△ABC中,AC=5,BC=12,AB=13",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 5.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "B",
+            "C"
+          ],
+          "value": 12.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 13.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 1,
+      "original_text": "如图,在△ABC中,AC=5,BC=12,AB=13,则tan∠B的值是()",
+      "cleaned_text": "在△ABC中,AC=5,BC=12,AB=13"
+    },
+    {
+      "id": "2875",
+      "subject": "CD是Rt△ABC斜边上的高．若AB=5,AC=3",
+      "required_objects": {
+        "points": [
+          "C",
+          "D",
+          "A",
+          "B"
+        ],
+        "segments": [
+          [
+            "C",
+            "D"
+          ],
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90.0
+        },
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "C",
+              "D"
+            ],
+            [
+              "A",
+              "B"
+            ]
+          ]
+        },
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "B"
+          ],
+          "value": 5.0
+        },
+        {
+          "type": "distance_equals",
+          "segment": [
+            "A",
+            "C"
+          ],
+          "value": 3.0
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,CD是Rt△ABC斜边上的高．若AB=5,AC=3,则tan∠BCD为()",
+      "cleaned_text": "CD是Rt△ABC斜边上的高．若AB=5,AC=3"
+    },
+    {
+      "id": "2892",
+      "subject": "已知Rt△ABC中,∠C=90°,∠BAC=67.5°,D为BC上一点,AD=BD",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "A"
+          ],
+          [
+            "A",
+            "D"
+          ],
+          [
+            "B",
+            "D"
+          ]
+        ],
+        "lines": [],
+        "circles": [],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "point_on_segment",
+          "point": "D",
+          "segment": [
+            "B",
+            "C"
+          ]
+        },
+        {
+          "type": "segment_equality",
+          "segments": [
+            [
+              "A",
+              "D"
+            ],
+            [
+              "B",
+              "D"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "C",
+              "B"
+            ]
+          ],
+          "value": 90
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "B",
+              "A",
+              "C"
+            ]
+          ],
+          "value": 67.5
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,已知Rt△ABC中,∠C=90°,∠BAC=67.5°,AD=BD,则sin∠ADC=()",
+      "cleaned_text": "已知Rt△ABC中,∠C=90°,∠BAC=67.5°,AD=BD"
+    },
+    {
+      "id": "2907",
+      "subject": "A、B、C是⊙O上的三点,若∠A+∠C=75°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "O"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "angle_sum",
+          "angles": [
+            {
+              "points": [
+                "C",
+                "A",
+                "B"
+              ]
+            },
+            {
+              "points": [
+                "B",
+                "C",
+                "A"
+              ]
+            }
+          ],
+          "value": 75
+        }
+      ],
+      "category": "Triangle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,A、B、C是⊙O上的三点,若∠A+∠C=75°,则∠AOC的度数为()",
+      "cleaned_text": "A、B、C是⊙O上的三点,若∠A+∠C=75°"
+    },
+    {
+      "id": "2917",
+      "subject": "⊙O中,A,B,C在圆 O 上,OA⊥BC,∠AOC=50°",
+      "required_objects": {
+        "points": [
+          "O",
+          "A",
+          "B",
+          "C"
+        ],
+        "segments": [
+          [
+            "O",
+            "A"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "O"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "radius_point": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "perpendicular",
+          "objects": [
+            [
+              "O",
+              "A"
+            ],
+            [
+              "B",
+              "C"
+            ]
+          ]
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "A",
+              "O",
+              "C"
+            ]
+          ],
+          "value": 50.0
+        },
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 3,
+      "original_text": "如图,⊙O中,OA⊥BC,∠AOC=50°,则∠ADB的度数为()",
+      "cleaned_text": "⊙O中,OA⊥BC,∠AOC=50°"
+    },
+    {
+      "id": "3045",
+      "subject": "△ABC的顶点均在⊙O上,若∠A=36°",
+      "required_objects": {
+        "points": [
+          "A",
+          "B",
+          "C",
+          "O"
+        ],
+        "segments": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "A",
+            "C"
+          ]
+        ],
+        "lines": [],
+        "circles": [
+          {
+            "center": "O",
+            "circle_center": "A"
+          }
+        ],
+        "polygons": []
+      },
+      "verification_conditions": [
+        {
+          "type": "point_on_circle",
+          "point": "A",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "B",
+          "circle_center": "O"
+        },
+        {
+          "type": "point_on_circle",
+          "point": "C",
+          "circle_center": "O"
+        },
+        {
+          "type": "angle_value",
+          "points": [
+            [
+              "B",
+              "A",
+              "C"
+            ]
+          ],
+          "value": 36.0
+        }
+      ],
+      "category": "Circle Properties & Constructions",
+      "difficulty": 2,
+      "original_text": "如图,△ABC的顶点均在⊙O上,若∠A=36°,则∠OBC的度数为()",
+      "cleaned_text": "△ABC的顶点均在⊙O上,若∠A=36°"
     }
   ]
 }

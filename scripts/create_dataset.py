@@ -335,7 +335,7 @@ def main():
     
     # Handle merge mode
     if args.merge:
-        final_output = os.path.join(args.output_dir, "geoqa3_dataset.json")
+        final_output = os.path.join(args.output_dir, "geoqa3_dataset_new.json")
         merge_jsonl_files(args.output_dir, final_output)
         return
     

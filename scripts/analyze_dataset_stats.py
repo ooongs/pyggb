@@ -124,7 +124,7 @@ def analyze_dataset(dataset_path: str):
 
 
 if __name__ == "__main__":
-    dataset_path = "data/geoqa3_dataset.json"
+    dataset_path = "./data/geoqa3_dataset.json"
 
     if len(sys.argv) > 1:
         dataset_path = sys.argv[1]
